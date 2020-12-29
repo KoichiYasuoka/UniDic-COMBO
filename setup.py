@@ -14,7 +14,7 @@ REQUIREMENTS = [
 #    'tensorboard==2.1.0',
     'torch>=1.6.0',
 #    'tqdm==4.43.0',
-    'transformers>=3.4.0',
+#    'transformers>=3.4.0',
 #    'urllib3>=1.25.11',
 ]
 
