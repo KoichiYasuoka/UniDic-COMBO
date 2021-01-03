@@ -18,7 +18,7 @@ setuptools.setup(
   author="Koichi Yasuoka",
   author_email="yasuoka@kanji.zinbun.kyoto-u.ac.jp",
   license="GPL",
-  keywords="NLP jPTDP spaCy",
+  keywords="NLP Japanese spaCy",
   packages=setuptools.find_packages(),
   install_requires=[
     "unidic2ud>=2.6.2",
