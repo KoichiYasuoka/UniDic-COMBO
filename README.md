@@ -58,12 +58,12 @@ pip3 install git+https://github.com/KoichiYasuoka/UniDic-COMBO
 
 Make sure to get `python37-devel` `python37-pip` `python37-cython` `python37-numpy` `python37-cffi` `gcc-g++` `mingw64-x86_64-gcc-g++` `gcc-fortran` `git` `curl` `make` `cmake` `libopenblas` `liblapack-devel` `libhdf5-devel` `libfreetype-devel` `libuv-devel` packages, and then:
 ```sh
-curl -L https://raw.githubusercontent.com/KoichiYasuoka/UniDic-COMBO/main/cygwin64.sh | sh
+curl -L https://raw.githubusercontent.com/KoichiYasuoka/UniDic-COMBO/master/cygwin64.sh | sh
 ```
 
 ## Benchmarks
 
-Results of [舞姬/雪國/荒野より-Benchmarks](https://colab.research.google.com/github/KoichiYasuoka/UniDic-COMBO/blob/main/benchmark.ipynb)
+Results of [舞姬/雪國/荒野より-Benchmarks](https://colab.research.google.com/github/KoichiYasuoka/UniDic-COMBO/blob/master/benchmark.ipynb)
 
 |[舞姬](https://github.com/KoichiYasuoka/UniDic2UD/blob/master/benchmark/maihime-benchmark.tar.gz)|LAS|MLAS|BLEX|
 |---------------|-----|-----|-----|
