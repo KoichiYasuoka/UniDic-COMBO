@@ -1,3 +1,5 @@
+[![Current PyPI packages](https://badge.fury.io/py/unidic-combo.svg)](https://pypi.org/project/unidic-combo/)
+
 # UniDic-COMBO
 
 [UniDic2UD](https://github.com/KoichiYasuoka/UniDic2UD) + [COMBO-pytorch](https://github.com/ipipan/combo) wrapper for [spaCy](https://spacy.io)
@@ -51,7 +53,7 @@
 ## Installation for Linux
 
 ```sh
-pip3 install git+https://github.com/KoichiYasuoka/UniDic-COMBO
+pip3 install unidic_combo
 ```
 
 ## Installation for Cygwin64
