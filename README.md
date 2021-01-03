@@ -35,6 +35,16 @@
 も   ADP  <══╝ ║ ║ case(格表示)
 見え VERB ═╗═══╝═╝ ROOT(親)
 ぬ   AUX  <╝       aux(動詞補助成分)
+
+>>> from deplacy.deprelja import deprelja
+>>> for b in unidic_combo.bunsetu_spans(doc):
+...   for t in b.lefts:
+...     print(unidic_combo.bunsetu_span(t),"->",b,"("+deprelja[t.dep_]+")")
+...
+澤山 -> 居つた (連用修飾語)
+居つた -> 兄弟が (連体修飾節)
+兄弟が -> 見えぬ (主語)
+一疋も -> 見えぬ (斜格補語)
 ```
 
 `unidic_combo.load(UniDic)` loads spaCy Language pipeline for UniDic2UD + COMBO-pytorch. Available `UniDic` options are:
