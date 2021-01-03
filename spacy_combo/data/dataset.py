@@ -9,7 +9,7 @@ from conllu import parser
 from dataclasses import dataclass
 from overrides import overrides
 
-from combo.data import fields
+from unidic_combo.data import fields
 
 logger = logging.getLogger(__name__)
 

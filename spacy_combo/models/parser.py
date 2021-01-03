@@ -7,7 +7,7 @@ import torch.nn.functional as F
 from allennlp import data
 from allennlp.nn import chu_liu_edmonds
 
-from combo.models import base, utils
+from unidic_combo.models import base, utils
 
 
 class HeadPredictionModel(base.Predictor):

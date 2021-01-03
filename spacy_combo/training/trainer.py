@@ -22,7 +22,7 @@ from allennlp.training import tensorboard_writer as allen_tensorboard_writer
 from allennlp.training import util as training_util
 from overrides import overrides
 
-from combo.training import tensorboard_writer as combo_tensorboard_writer
+from unidic_combo.training import tensorboard_writer as combo_tensorboard_writer
 
 logger = logging.getLogger(__name__)
 

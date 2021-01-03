@@ -7,8 +7,8 @@ from allennlp.modules import text_field_embedders
 from allennlp.nn import util
 from overrides import overrides
 
-from combo.models import base
-from combo.utils import metrics
+from unidic_combo.models import base
+from unidic_combo.utils import metrics
 
 
 @allen_models.Model.register("semantic_multitask")

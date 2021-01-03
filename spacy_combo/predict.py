@@ -9,9 +9,9 @@ from allennlp.data import tokenizers
 from allennlp.predictors import predictor
 from overrides import overrides
 
-from combo import data
-from combo.data import sentence2conllu, tokens2conllu, conllu2sentence
-from combo.utils import download
+from unidic_combo import data
+from unidic_combo.data import sentence2conllu, tokens2conllu, conllu2sentence
+from unidic_combo.utils import download
 
 logger = logging.getLogger(__name__)
 
@@ -202,9 +202,9 @@ class SemanticMultitaskPredictor(predictor.Predictor):
     def from_pretrained(cls, path: str, tokenizer=tokenizers.SpacyTokenizer(),
                         batch_size: int = 500,
                         cuda_device: int = -1):
-        util.import_module_and_submodules("combo.commands")
-        util.import_module_and_submodules("combo.models")
-        util.import_module_and_submodules("combo.training")
+        util.import_module_and_submodules("unidic_combo.commands")
+        util.import_module_and_submodules("unidic_combo.models")
+        util.import_module_and_submodules("unidic_combo.training")
 
         if os.path.exists(path):
             model_path = path

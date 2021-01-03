@@ -8,7 +8,7 @@ from allennlp.modules import token_embedders
 from allennlp.nn import util
 from overrides import overrides
 
-from combo.models import base, dilated_cnn
+from unidic_combo.models import base, dilated_cnn
 
 
 @token_embedders.TokenEmbedder.register("char_embeddings")

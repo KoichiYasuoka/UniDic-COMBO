@@ -6,7 +6,7 @@ import torch.nn as nn
 from allennlp import data, nn as allen_nn, modules
 from allennlp.common import checks
 
-from combo.models import base, dilated_cnn, utils
+from unidic_combo.models import base, dilated_cnn, utils
 
 
 @base.Predictor.register("combo_lemma_predictor_from_vocab", constructor="from_vocab")

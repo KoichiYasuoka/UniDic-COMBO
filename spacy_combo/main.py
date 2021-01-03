@@ -12,9 +12,9 @@ from allennlp.commands import train, predict as allen_predict
 from allennlp.common import checks as allen_checks, util
 from allennlp.models import archival
 
-from combo import predict
-from combo.data import api, dataset
-from combo.utils import checks
+from unidic_combo import predict
+from unidic_combo.data import api, dataset
+from unidic_combo.utils import checks
 
 logger = logging.getLogger(__name__)
 _FEATURES = ["token", "char", "upostag", "xpostag", "lemma", "feats"]
@@ -90,9 +90,9 @@ flags.DEFINE_enum(name="predictor_name", default="semantic-multitask-predictor-s
 def run(_):
     """Run model."""
     # Imports are required to make Registrable modules visible without passing parameter
-    util.import_module_and_submodules("combo.commands")
-    util.import_module_and_submodules("combo.models")
-    util.import_module_and_submodules("combo.training")
+    util.import_module_and_submodules("unidic_combo.commands")
+    util.import_module_and_submodules("unidic_combo.models")
+    util.import_module_and_submodules("unidic_combo.training")
 
     if FLAGS.mode == "train":
         checks.file_exists(FLAGS.config_path)

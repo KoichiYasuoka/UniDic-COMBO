@@ -7,8 +7,8 @@ from allennlp.common import checks
 from allennlp.modules import feedforward
 from allennlp.nn import Activation
 
-from combo.data import dataset
-from combo.models import base, utils
+from unidic_combo.data import dataset
+from unidic_combo.models import base, utils
 
 
 @base.Predictor.register("combo_morpho_from_vocab", constructor="from_vocab")

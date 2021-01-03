@@ -8,7 +8,7 @@ from allennlp.common import checks
 from allennlp.modules import feedforward
 from allennlp.nn import Activation
 
-from combo.models import utils
+from unidic_combo.models import utils
 
 
 class Predictor(nn.Module, common.Registrable):
