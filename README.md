@@ -75,7 +75,7 @@ curl -L https://raw.githubusercontent.com/KoichiYasuoka/UniDic-COMBO/master/cygw
 
 ## Installation for macOS
 
-You need to install [Jsonnet](https;//github.com/google/jsonnet) first:
+You need to install [Jsonnet](https;//github.com/google/jsonnet) first, for example:
 
 ```sh
 g++ --version
