@@ -73,6 +73,29 @@ Make sure to get `python37-devel` `python37-pip` `python37-cython` `python37-num
 curl -L https://raw.githubusercontent.com/KoichiYasuoka/UniDic-COMBO/master/cygwin64.sh | sh
 ```
 
+## Installation for macOS
+
+You need to install [Jsonnet](https;//github.com/google/jsonnet) first:
+
+```sh
+g++ --version
+cd /tmp
+git clone --depth=1 https://github.com/google/jsonnet
+cd jsonnet
+make
+( echo '#! /bin/sh' ; echo 'exec gcc `echo $* | sed "s/-arch [^ ]*//g"`' ) > clang
+chmod 755 clang
+env PATH=".:$PATH" pip3 install . --user
+```
+
+Then, install UniDic-COMBO and some dictionaries:
+
+```sh
+pip3 install unidic_combo --user
+python3 -m spacy download en_core_web_sm --user
+( echo import unidic_combo ; echo 'nlp=unidic_combo.load()' ) | python3
+```
+
 ## Benchmarks
 
 Results of [舞姬/雪國/荒野より-Benchmarks](https://colab.research.google.com/github/KoichiYasuoka/UniDic-COMBO/blob/master/benchmark.ipynb)
