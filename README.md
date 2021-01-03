@@ -88,7 +88,7 @@ chmod 755 clang
 env PATH=".:$PATH" pip3 install . --user
 ```
 
-Then, install UniDic-COMBO and some dictionaries:
+Then, install UniDic-COMBO and language models:
 
 ```sh
 pip3 install unidic_combo --user
