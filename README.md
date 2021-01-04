@@ -82,7 +82,7 @@ python3 -m spacy download en_core_web_sm --user
 ( echo import unidic_combo ; echo 'nlp=unidic_combo.load()' ) | python3
 ```
 
-If you fail to install python3-binding of [Jsonnet](https://github.com/google/jsonnet), try below before installing UniDic-COMBO:
+If you fail to install [Jsonnet](https://github.com/google/jsonnet), try below before installing UniDic-COMBO:
 
 ```sh
 ( echo '#! /bin/sh' ; echo 'exec gcc `echo $* | sed "s/-arch [^ ]*//g"`' ) > /tmp/clang
