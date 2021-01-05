@@ -1,16 +1,16 @@
 import os,setuptools,subprocess
 if os.path.isfile("dummy.tar.gz"):
-  package_data={ "unidic_combo":["./mkmodel.sh"] }
+  package_data={"unidic_combo":["./mkmodel.sh"]}
 else:
   subprocess.run(["unidic_combo/mkmodel.sh"])
-  package_data={ "unidic_combo":["./mkmodel.sh","./combo-*.tar.gz"] }
+  package_data={"unidic_combo":["./mkmodel.sh","./combo-*.tar.gz"]}
 with open("README.md","r",encoding="utf-8") as r:
   long_description=r.read()
 URL="https://github.com/KoichiYasuoka/UniDic-COMBO"
 
 setuptools.setup(
   name="unidic_combo",
-  version="0.8.0",
+  version="0.8.1",
   description="UniDic2UD + COMBO-pytorch wrapper for spaCy",
   long_description=long_description,
   long_description_content_type="text/markdown",
