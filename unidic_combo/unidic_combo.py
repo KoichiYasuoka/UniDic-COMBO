@@ -17,7 +17,21 @@ def ComboAPI(conllu):
     else:
       t=s.split("\t")
       e.append(Token(id=int(t[0]),token=t[1],lemma=t[2],upostag=t[3],xpostag=t[4],misc=t[9]))
-  return "".join([sentence2conllu(s,False).serialize() for s in combo_parser(d)])
+  u=combo_parser(d)
+  for s in u:
+    for t in s.tokens:
+      d=t.deprel
+      if d=="advmod":
+        t.upostag="ADV"
+      elif d=="amod":
+        t.upostag="ADJ"
+      elif d=="aux" or d=="cop":
+        t.upostag="AUX"
+      elif d=="det":
+        t.upostag="DET"
+      elif d=="nummod":
+        t.upostag="NUM"
+  return "".join([sentence2conllu(s,False).serialize() for s in u])
 
 def ComboRevAPI(conllu):
   from unidic_combo.data import Token,Sentence,sentence2conllu
@@ -35,6 +49,17 @@ def ComboRevAPI(conllu):
   for s in u:
     for t in s.tokens:
       t.token,t.lemma=t.lemma,t.token
+      d=t.deprel
+      if d=="advmod":
+        t.upostag="ADV"
+      elif d=="amod":
+        t.upostag="ADJ"
+      elif d=="aux" or d=="cop":
+        t.upostag="AUX"
+      elif d=="det":
+        t.upostag="DET"
+      elif d=="nummod":
+        t.upostag="NUM"
   return "".join([sentence2conllu(s,False).serialize() for s in u])
 
 def load(UniDic=None,BERT=True,LemmaAsForm=None):
