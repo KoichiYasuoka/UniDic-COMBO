@@ -37,15 +37,17 @@ def ComboRevAPI(conllu):
       t.token,t.lemma=t.lemma,t.token
   return "".join([sentence2conllu(s,False).serialize() for s in u])
 
-def load(UniDic=None,LemmaAsForm=None):
+def load(UniDic=None,BERT=True,LemmaAsForm=None):
   global combo_parser
   import unidic2ud.spacy
   if UniDic==None:
     UniDic="ipadic"
   nlp=unidic2ud.spacy.load(UniDic,None)
+  m="combo-japanese.tar.gz" if BERT else "combo-japanese-small.tar.gz"
   if LemmaAsForm==None:
     LemmaAsForm=UniDic not in ["gendai","spoken","ipadic"]
-  m="combo-japanese-rev.tar.gz" if LemmaAsForm else "combo-japanese.tar.gz"
+  if LemmaAsForm:
+    m=m.replace(".tar.gz","-rev.tar.gz")
   if nlp.tokenizer.model.model!=m:
     combo_parser=None
   if combo_parser==None:
