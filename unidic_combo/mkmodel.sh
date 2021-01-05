@@ -17,7 +17,7 @@ do if [ -s unidic_combo/combo-$M.tar.gz ]
         *) B='--pretrained_transformer_name cl-tohoku/bert-base-japanese-whole-word-masking' ;;
         esac
         python3 -m unidic_combo.main --mode train --cuda_device 0 --num_epochs 100 $B --training_data_path $C --targets deprel,head,upostag --features token,char,xpostag,lemma
-        cp -i `ls -1t /tmp/allennlp*/model.tar.gz | head -1` unidic_combo/combo-$M.tar.gz
+        cp `ls -1t /tmp/allennlp*/model.tar.gz | head -1` unidic_combo/combo-$M.tar.gz
         mkdir -p model
         split -a 1 -b 83886080 --numeric-suffixes=1 unidic_combo/combo-$M.tar.gz model/combo-$M.tar.gz.
    else git clone --depth=1 https://github.com/KoichiYasuoka/UniDic-COMBO
