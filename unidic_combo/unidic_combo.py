@@ -34,6 +34,9 @@ def ComboAPI(conllu):
         t.upostag="DET"
       elif d=="nummod":
         t.upostag="NUM"
+      if t.head==0 or t.head==t.id:
+        t.head=0
+        t.deprel="root"
   return "".join([sentence2conllu(s,False).serialize() for s in u])
 
 def ComboRevAPI(conllu):
@@ -66,6 +69,9 @@ def ComboRevAPI(conllu):
         t.upostag="DET"
       elif d=="nummod":
         t.upostag="NUM"
+      if t.head==0 or t.head==t.id:
+        t.head=0
+        t.deprel="root"
   return "".join([sentence2conllu(s,False).serialize() for s in u])
 
 def load(UniDic=None,BERT=True,LemmaAsForm=None):
