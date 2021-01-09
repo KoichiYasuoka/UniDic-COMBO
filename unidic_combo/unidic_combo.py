@@ -21,7 +21,10 @@ def ComboAPI(conllu):
   for s in u:
     for t in s.tokens:
       d=t.deprel
-      if d=="advmod":
+      if d=="root":
+        if t.head!=0:
+          t.deprel="advcl" if t.head>t.id else "parataxis"
+      elif d=="advmod":
         t.upostag="ADV"
       elif d=="amod":
         t.upostag="ADJ"
@@ -50,7 +53,10 @@ def ComboRevAPI(conllu):
     for t in s.tokens:
       t.token,t.lemma=t.lemma,t.token
       d=t.deprel
-      if d=="advmod":
+      if d=="root":
+        if t.head!=0:
+          t.deprel="advcl" if t.head>t.id else "parataxis"
+      elif d=="advmod":
         t.upostag="ADV"
       elif d=="amod":
         t.upostag="ADJ"
