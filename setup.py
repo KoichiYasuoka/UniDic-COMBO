@@ -10,7 +10,7 @@ URL="https://github.com/KoichiYasuoka/UniDic-COMBO"
 
 setuptools.setup(
   name="unidic_combo",
-  version="0.8.6",
+  version="0.8.7",
   description="UniDic2UD + COMBO-pytorch wrapper for spaCy",
   long_description=long_description,
   long_description_content_type="text/markdown",
@@ -21,7 +21,7 @@ setuptools.setup(
   keywords="NLP Japanese spaCy",
   packages=setuptools.find_packages(),
   install_requires=[
-    "unidic2ud>=2.6.6",
+    "unidic2ud>=2.6.7",
     "spacy>=2.2.2",
     "allennlp>=1.2.0",
     "torch>=1.6.0",
