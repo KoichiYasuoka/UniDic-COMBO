@@ -7,17 +7,16 @@ combo_parser=None
 
 def ComboAPI(conllu):
   from unidic_combo.data import Token,Sentence,sentence2conllu
-  d=[]
+  u=[]
   e=[]
   for s in conllu.split("\n"):
     if s=="" or s.startswith("#"):
       if e!=[]:
-        d.append(Sentence(tokens=e))
+        u.extend(combo_parser([Sentence(tokens=e)]))
         e=[]
     else:
       t=s.split("\t")
       e.append(Token(id=int(t[0]),token=t[1],lemma=t[2],upostag=t[3],xpostag=t[4],misc=t[9]))
-  u=combo_parser(d)
   for s in u:
     for t in s.tokens:
       d=t.deprel
@@ -41,17 +40,16 @@ def ComboAPI(conllu):
 
 def ComboRevAPI(conllu):
   from unidic_combo.data import Token,Sentence,sentence2conllu
-  d=[]
+  u=[]
   e=[]
   for s in conllu.split("\n"):
     if s=="" or s.startswith("#"):
       if e!=[]:
-        d.append(Sentence(tokens=e))
+        u.extend(combo_parser([Sentence(tokens=e)]))
         e=[]
     else:
       t=s.split("\t")
       e.append(Token(id=int(t[0]),token=t[2],lemma=t[1],upostag=t[3],xpostag=t[4],misc=t[9]))
-  u=combo_parser(d)
   for s in u:
     for t in s.tokens:
       t.token,t.lemma=t.lemma,t.token
