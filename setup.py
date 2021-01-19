@@ -1,16 +1,11 @@
-import os,setuptools,subprocess
-if os.path.isfile("dummy.tar.gz"):
-  package_data={"unidic_combo":["./mkmodel.sh"]}
-else:
-  subprocess.run(["unidic_combo/mkmodel.sh"])
-  package_data={"unidic_combo":["./mkmodel.sh","./combo-*.tar.gz"]}
+import os,setuptools
 with open("README.md","r",encoding="utf-8") as r:
   long_description=r.read()
 URL="https://github.com/KoichiYasuoka/UniDic-COMBO"
 
 setuptools.setup(
   name="unidic_combo",
-  version="0.8.9",
+  version="0.9.0",
   description="UniDic2UD + COMBO-pytorch wrapper for spaCy",
   long_description=long_description,
   long_description_content_type="text/markdown",
@@ -34,7 +29,7 @@ setuptools.setup(
     "ipadic>=1.0.0"
   ],
   python_requires=">=3.6",
-  package_data=package_data,
+  package_data={"unidic_combo":["download/*.txt"]},
   classifiers=[
     "License :: OSI Approved :: GNU General Public License (GPL)",
     "Programming Language :: Python :: 3",
