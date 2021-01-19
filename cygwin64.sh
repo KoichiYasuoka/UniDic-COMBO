@@ -24,5 +24,5 @@ TOKENIZERS_VERSION=0.9.4
 export ALLENNLP_VERSION TOKENIZERS_VERSION
 pip3.7 install 'torch>=1.6.0' -f https://github.com/KoichiYasuoka/CygTorch
 curl -L https://raw.githubusercontent.com/KoichiYasuoka/CygTorch/master/installer/allennlp.sh | sh -x
-pip3.7 install tokenizers==$TOKENIZERS_VERSION fugashi==1.0.1 git+https://github.com/KoichiYasuoka/UniDic-COMBO
+pip3.7 install tokenizers==$TOKENIZERS_VERSION fugashi==1.0.1 unidic_combo
 exit 0
