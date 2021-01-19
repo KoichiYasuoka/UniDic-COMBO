@@ -3,6 +3,19 @@
 
 import os
 PACKAGE_DIR=os.path.abspath(os.path.dirname(__file__))
+DOWNLOAD_DIR=os.path.join(PACKAGE_DIR,"download")
+MODEL_URL="https://raw.githubusercontent.com/KoichiYasuoka/UniDic-COMBO/master/unidic_combo/download/"
+filesize={}
+with open(os.path.join(DOWNLOAD_DIR,"filesize.txt"),"r") as f:
+  r=f.read()
+for t in r.split("\n"):
+  s=t.split()
+  if len(s)==2:
+    filesize[s[0]]=int(s[1])
+
+import time
+tm=time.time()
+fs=ft=0
 combo_parser=None
 
 class ComboAPI(object):
@@ -71,8 +84,68 @@ def load(UniDic=None,BERT=True,LemmaAsForm=None):
     combo_parser=None
   if combo_parser==None:
     import unidic_combo.predict
-    combo_parser=unidic_combo.predict.SemanticMultitaskPredictor.from_pretrained(os.path.join(PACKAGE_DIR,m))
+    f=os.path.join(DOWNLOAD_DIR,m)
+    try:
+      s=os.path.getsize(f)
+      if filesize[m]!=s:
+        s=-1
+    except:
+      s=-1
+    if s<0:
+      download(MODEL_URL,m,DOWNLOAD_DIR)
+    combo_parser=unidic_combo.predict.SemanticMultitaskPredictor.from_pretrained(f)
     nlp.tokenizer.model.udpipe=ComboRevAPI(UniDic) if LemmaAsForm else ComboAPI(UniDic)
   nlp.tokenizer.model.model=m
   return nlp
+
+def progress(block_count,block_size,total_size):
+  t=time.time()
+  p=100.0*(block_count*block_size+fs)/ft
+  if p<1:
+    t=-1
+  elif p>=100:
+    p=100
+    t-=tm
+  else:
+    t=(t-tm)*(100-p)/p
+  b=int(p/2)
+  if b==50:
+    s="="*50
+  else:
+    s=("="*b)+">"+(" "*(49-b))
+  if t<0:
+    u="   "
+  elif t<3600:
+    u=time.strftime("%M:%S   ",time.gmtime(t))
+  elif t<86400:
+    u=time.strftime("%H:%M:%S   ",time.gmtime(t))
+  else:
+    u=time.strftime("%d+%H:%M:%S   ",time.gmtime(t))
+  print("\r ["+s+"] "+str(int(p))+"% "+u,end="")
+
+def download(url,file,dir="."):
+  import urllib.request
+  global fs,ft,tm
+  t=os.path.join(dir,"filesize.txt")
+  urllib.request.urlretrieve(url+"filesize.txt",t)
+  with open(t,"r") as f:
+    r=f.read()
+  ft=0
+  for t in r.split("\n"):
+    s=t.split()
+    if len(s)==2:
+      if s[0]==file:
+        ft=int(s[1])
+  tm=time.time()
+  with open(os.path.join(dir,file),"wb") as f:
+    fs=0
+    i=1
+    while fs<ft:
+      g,h=urllib.request.urlretrieve(url+file+"."+str(i),reporthook=progress)
+      with open(g,"rb") as r:
+        q=r.read()
+      f.write(q)
+      fs+=len(q)
+      i+=1
+  print("")
 
