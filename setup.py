@@ -5,7 +5,7 @@ URL="https://github.com/KoichiYasuoka/UniDic-COMBO"
 
 setuptools.setup(
   name="unidic_combo",
-  version="0.9.1",
+  version="0.9.2",
   description="UniDic2UD + COMBO-pytorch wrapper for spaCy",
   long_description=long_description,
   long_description_content_type="text/markdown",
@@ -38,7 +38,7 @@ setuptools.setup(
     "Natural Language :: Japanese"
   ],
   project_urls={
-    "COMBO-pytorch":"https://github.com/ipipan/combo",
+    "COMBO-pytorch":"https://gitlab.clarin-pl.eu/syntactic-tools/combo",
     "Source":URL,
     "Tracker":URL+"/issues",
   }
