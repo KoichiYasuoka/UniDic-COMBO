@@ -47,7 +47,7 @@
 一疋も -> 見えぬ (斜格補語)
 ```
 
-`unidic_combo.load(UniDic)` loads spaCy Language pipeline for UniDic2UD + COMBO-pytorch. Available `UniDic` options are:
+`unidic_combo.load(UniDic,BERT=True)` loads spaCy Language pipeline for UniDic2UD + COMBO-pytorch. Available `UniDic` options are:
 
 * `UniDic="gendai"`: Use [現代書き言葉UniDic](https://unidic.ninjal.ac.jp/download#unidic_bccwj).
 * `UniDic="spoken"`: Use [現代話し言葉UniDic](https://unidic.ninjal.ac.jp/download#unidic_csj).
@@ -59,6 +59,8 @@
 * `UniDic="wabun"`: Use [中古和文UniDic](https://unidic.ninjal.ac.jp/download_all#unidic_wabun).
 * `UniDic="manyo"`: Use [上代（万葉集）UniDic](https://unidic.ninjal.ac.jp/download_all#unidic_manyo).
 * `UniDic=None`: Use IPADic (default).
+
+`BERT=True`/`BERT=False` option enables/disables to use [bert-base-japanese-whole-word-masking](https://huggingface.co/cl-tohoku/bert-base-japanese-whole-word-masking).
 
 ## Installation for Linux
 
