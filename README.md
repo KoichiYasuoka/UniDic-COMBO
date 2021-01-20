@@ -2,7 +2,7 @@
 
 # UniDic-COMBO
 
-[UniDic2UD](https://github.com/KoichiYasuoka/UniDic2UD) + [COMBO-pytorch](https://github.com/ipipan/combo) wrapper for [spaCy](https://spacy.io)
+[UniDic2UD](https://github.com/KoichiYasuoka/UniDic2UD) + [COMBO-pytorch](https://gitlab.clarin-pl.eu/syntactic-tools/combo) wrapper for [spaCy](https://spacy.io)
 
 ## Basic Usage
 
