@@ -27,11 +27,11 @@ class Linear(nn.Linear, common.FromParams):
     def __init__(self,
                  in_features: int,
                  out_features: int,
-                 activation: Optional[allen_nn.Activation] = lambda x: x,
+                 activation: Optional[allen_nn.Activation] = None,
                  dropout_rate: Optional[float] = 0.0):
         super().__init__(in_features, out_features)
-        self.activation = activation
-        self.dropout = nn.Dropout(p=dropout_rate) if dropout_rate else lambda x: x
+        self.activation = activation if activation else self.identity
+        self.dropout = nn.Dropout(p=dropout_rate) if dropout_rate else self.identity
 
     def forward(self, x: torch.FloatTensor) -> torch.FloatTensor:
         x = super().forward(x)
@@ -40,6 +40,10 @@ class Linear(nn.Linear, common.FromParams):
 
     def get_output_dim(self) -> int:
         return self.out_features
+
+    @staticmethod
+    def identity(x):
+        return x
 
 
 @Predictor.register("feedforward_predictor")

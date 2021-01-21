@@ -1,4 +1,4 @@
-"""Dependency parsing models."""
+"""Enhanced dependency parsing models."""
 from typing import Tuple, Dict, Optional, Union, List
 
 import numpy as np
@@ -10,57 +10,45 @@ from allennlp.nn import chu_liu_edmonds
 from unidic_combo.models import base, utils
 
 
-class HeadPredictionModel(base.Predictor):
+class GraphHeadPredictionModel(base.Predictor):
     """Head prediction model."""
 
     def __init__(self,
                  head_projection_layer: base.Linear,
                  dependency_projection_layer: base.Linear,
-                 cycle_loss_n: int = 0):
+                 cycle_loss_n: int = 0,
+                 graph_weighting: float = 0.2):
         super().__init__()
         self.head_projection_layer = head_projection_layer
         self.dependency_projection_layer = dependency_projection_layer
         self.cycle_loss_n = cycle_loss_n
+        self.graph_weighting = graph_weighting
 
     def forward(self,
                 x: Union[torch.Tensor, List[torch.Tensor]],
-                mask: Optional[torch.BoolTensor] = None,
                 labels: Optional[Union[torch.Tensor, List[torch.Tensor]]] = None,
+                mask: Optional[torch.BoolTensor] = None,
                 sample_weights: Optional[Union[torch.Tensor, List[torch.Tensor]]] = None) -> Dict[str, torch.Tensor]:
         if mask is None:
             mask = x.new_ones(x.size()[-1])
+        heads_labels = None
+        if labels is not None and labels[0] is not None:
+            heads_labels = labels
 
         head_arc_emb = self.head_projection_layer(x)
         dep_arc_emb = self.dependency_projection_layer(x)
         x = dep_arc_emb.bmm(head_arc_emb.transpose(2, 1))
-
-        if self.training:
-            pred = x.argmax(-1)
-        else:
-            pred = []
-            # Adding non existing in mask ROOT to lengths
-            lengths = mask.data.sum(dim=1).long().cpu().numpy() + 1
-            for idx, length in enumerate(lengths):
-                probs = x[idx, :].softmax(dim=-1).cpu().numpy()
-
-                # We do not want any word to be parent of the root node (ROOT, 0).
-                # Also setting it to -1 instead of 0 fixes edge case where softmax made all
-                # but ROOT prediction to EXACTLY 0.0 and it might cause in many ROOT -> word edges)
-                probs[:, 0] = -1
-                heads, _ = chu_liu_edmonds.decode_mst(probs.T, length=length, has_labels=False)
-                heads[0] = 0
-                pred.append(heads)
-            pred = torch.from_numpy(np.stack(pred)).to(x.device)
+        pred = x.sigmoid() > 0.5
 
         output = {
-            "prediction": pred[:, 1:],
+            "prediction": pred,
             "probability": x
         }
 
-        if labels is not None:
+        if heads_labels is not None:
             if sample_weights is None:
-                sample_weights = labels.new_ones([mask.size(0)])
-            output["loss"], output["cycle_loss"] = self._loss(x, labels, mask, sample_weights)
+                sample_weights = heads_labels.new_ones([mask.size(0)])
+            output["loss"], output["cycle_loss"] = self._loss(x, heads_labels, mask, sample_weights)
 
         return output
 
@@ -89,7 +77,7 @@ class HeadPredictionModel(base.Predictor):
         batch_identity = identity.repeat(BATCH_SIZE, 1, 1)
         return (x * batch_identity).sum((-1, -2))
 
-    def _loss(self, pred: torch.Tensor, true: torch.Tensor, mask: torch.BoolTensor,
+    def _loss(self, pred: torch.Tensor, labels: torch.Tensor,  mask: torch.BoolTensor,
               sample_weights: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         BATCH_SIZE, N, M = pred.size()
         assert N == M
@@ -98,30 +86,29 @@ class HeadPredictionModel(base.Predictor):
         valid_positions = mask.sum()
 
         result = []
+        true = labels
         # Ignore first pred dimension as it is ROOT token prediction
         for i in range(SENTENCE_LENGTH - 1):
-            pred_i = pred[:, i + 1, :].reshape(BATCH_SIZE, SENTENCE_LENGTH)
-            true_i = true[:, i].reshape(-1)
+            pred_i = pred[:, i + 1, 1:].reshape(-1)
+            true_i = true[:, i + 1, 1:].reshape(-1)
             mask_i = mask[:, i]
-            cross_entropy_loss = utils.masked_cross_entropy(pred_i, true_i, mask_i)
-            result.append(cross_entropy_loss)
+            bce_loss = F.binary_cross_entropy_with_logits(pred_i, true_i, reduction="none").mean(-1) * mask_i
+            result.append(bce_loss)
         cycle_loss = self._cycle_loss(pred)
         loss = torch.stack(result).transpose(1, 0) * sample_weights.unsqueeze(-1)
         return loss.sum() / valid_positions + cycle_loss.mean(), cycle_loss.mean()
 
 
-@base.Predictor.register("combo_dependency_parsing_from_vocab", constructor="from_vocab")
-class DependencyRelationModel(base.Predictor):
+@base.Predictor.register("combo_graph_dependency_parsing_from_vocab", constructor="from_vocab")
+class GraphDependencyRelationModel(base.Predictor):
     """Dependency relation parsing model."""
 
     def __init__(self,
-                 root_idx: int,
-                 head_predictor: HeadPredictionModel,
+                 head_predictor: GraphHeadPredictionModel,
                  head_projection_layer: base.Linear,
                  dependency_projection_layer: base.Linear,
                  relation_prediction_layer: base.Linear):
         super().__init__()
-        self.root_idx = root_idx
         self.head_predictor = head_predictor
         self.head_projection_layer = head_projection_layer
         self.dependency_projection_layer = dependency_projection_layer
@@ -132,50 +119,37 @@ class DependencyRelationModel(base.Predictor):
                 mask: Optional[torch.BoolTensor] = None,
                 labels: Optional[Union[torch.Tensor, List[torch.Tensor]]] = None,
                 sample_weights: Optional[Union[torch.Tensor, List[torch.Tensor]]] = None) -> Dict[str, torch.Tensor]:
-        device = x.device
-        if mask is not None:
-            mask = mask[:, 1:]
-        relations_labels, head_labels = None, None
+        relations_labels, head_labels, enhanced_heads_labels, enhanced_deprels_labels = None, None, None, None
         if labels is not None and labels[0] is not None:
-            relations_labels, head_labels = labels
-            if mask is None:
-                mask = head_labels.new_ones(head_labels.size())
+            relations_labels, head_labels, enhanced_heads_labels = labels
 
-        head_output = self.head_predictor(x, mask, head_labels, sample_weights)
+        head_output = self.head_predictor(x, enhanced_heads_labels, mask, sample_weights)
         head_pred = head_output["probability"]
-        head_pred_soft = F.softmax(head_pred, dim=-1)
+        BATCH_SIZE, LENGTH, _ = head_pred.size()
 
         head_rel_emb = self.head_projection_layer(x)
 
         dep_rel_emb = self.dependency_projection_layer(x)
 
-        dep_rel_pred = head_pred_soft.bmm(head_rel_emb)
-        dep_rel_pred = torch.cat((dep_rel_pred, dep_rel_emb), dim=-1)
-        relation_prediction = self.relation_prediction_layer(dep_rel_pred)
+        # All possible edges combinations for each batch
+        # Repeat interleave to have [emb1, emb1 ... (length times) ... emb1, emb2 ... ]
+        head_rel_pred = head_rel_emb.repeat_interleave(LENGTH, -2)
+        # Regular repeat to have all combinations [deprel1, deprel2, ... deprelL, deprel1 ...]
+        dep_rel_pred = dep_rel_emb.repeat(1, LENGTH, 1)
+
+        # All possible edges combinations for each batch
+        dep_rel_pred = torch.cat((head_rel_pred, dep_rel_pred), dim=-1)
+
+        relation_prediction = self.relation_prediction_layer(dep_rel_pred).reshape(BATCH_SIZE, LENGTH, LENGTH, -1)
         output = head_output
 
-        if self.training:
-            output["prediction"] = (relation_prediction.argmax(-1)[:, 1:], head_output["prediction"])
-        else:
-            # Mask root label whenever head is not 0.
-            relation_prediction_output = relation_prediction[:, 1:].clone()
-            mask = (head_output["prediction"] == 0)
-            vocab_size = relation_prediction_output.size(-1)
-            root_idx = torch.tensor([self.root_idx], device=device)
-            relation_prediction_output[mask] = (relation_prediction_output
-                                                .masked_select(mask.unsqueeze(-1))
-                                                .reshape(-1, vocab_size)
-                                                .index_fill(-1, root_idx, 10e10))
-            relation_prediction_output[~mask] = (relation_prediction_output
-                                                 .masked_select(~(mask.unsqueeze(-1)))
-                                                 .reshape(-1, vocab_size)
-                                                 .index_fill(-1, root_idx, -10e10))
-            output["prediction"] = (relation_prediction_output.argmax(-1), head_output["prediction"])
+        output["prediction"] = (relation_prediction.argmax(-1), head_output["prediction"])
+        output["rel_probability"] = relation_prediction
 
         if labels is not None and labels[0] is not None:
             if sample_weights is None:
                 sample_weights = labels.new_ones([mask.size(0)])
-            loss = self._loss(relation_prediction[:, 1:], relations_labels, mask, sample_weights)
+            loss = self._loss(relation_prediction, relations_labels, enhanced_heads_labels, mask, sample_weights)
             output["loss"] = (loss, head_output["loss"])
 
         return output
@@ -183,24 +157,20 @@ class DependencyRelationModel(base.Predictor):
     @staticmethod
     def _loss(pred: torch.Tensor,
               true: torch.Tensor,
+              heads_true: torch.Tensor,
               mask: torch.BoolTensor,
               sample_weights: torch.Tensor) -> torch.Tensor:
-
-        valid_positions = mask.sum()
-
-        BATCH_SIZE, _, DEPENDENCY_RELATIONS = pred.size()
-        pred = pred.reshape(-1, DEPENDENCY_RELATIONS)
-        true = true.reshape(-1)
-        mask = mask.reshape(-1)
-        loss = utils.masked_cross_entropy(pred, true, mask)
-        loss = loss.reshape(BATCH_SIZE, -1) * sample_weights.unsqueeze(-1)
-        return loss.sum() / valid_positions
+        correct_heads_mask = heads_true.long() == 1
+        true = true[correct_heads_mask]
+        pred = pred[correct_heads_mask]
+        loss = F.cross_entropy(pred, true.long())
+        return loss.sum() / pred.size(0)
 
     @classmethod
     def from_vocab(cls,
                    vocab: data.Vocabulary,
                    vocab_namespace: str,
-                   head_predictor: HeadPredictionModel,
+                   head_predictor: GraphHeadPredictionModel,
                    head_projection_layer: base.Linear,
                    dependency_projection_layer: base.Linear
                    ):
@@ -214,6 +184,5 @@ class DependencyRelationModel(base.Predictor):
             head_predictor=head_predictor,
             head_projection_layer=head_projection_layer,
             dependency_projection_layer=dependency_projection_layer,
-            relation_prediction_layer=relation_prediction_layer,
-            root_idx=vocab.get_token_index("root", vocab_namespace)
+            relation_prediction_layer=relation_prediction_layer
         )

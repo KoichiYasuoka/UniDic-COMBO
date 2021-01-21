@@ -68,10 +68,7 @@ class GradientDescentTrainer(training.GradientDescentTrainer):
         self.validate_every_n = 5
 
     @overrides
-    def train(self) -> Dict[str, Any]:
-        """
-        Trains the supplied model with the supplied parameters.
-        """
+    def _try_train(self) -> Dict[str, Any]:
         try:
             epoch_counter = self._restore_checkpoint()
         except RuntimeError:
@@ -97,19 +94,24 @@ class GradientDescentTrainer(training.GradientDescentTrainer):
             metrics["best_validation_" + key] = value
 
         for callback in self._epoch_callbacks:
-            callback(self, metrics={}, epoch=-1, is_master=True)
+            callback(self, metrics={}, epoch=-1, is_master=self._master)
 
         for epoch in range(epoch_counter, self._num_epochs):
             epoch_start_time = time.time()
             train_metrics = self._train_epoch(epoch)
 
+            if self._master and self._checkpointer is not None:
+                self._checkpointer.save_checkpoint(epoch, self, save_model_only=True)
+
+            # Wait for the master to finish saving the model checkpoint
+            if self._distributed:
+                dist.barrier()
+
             # get peak of memory usage
-            if "cpu_memory_MB" in train_metrics:
-                metrics["peak_cpu_memory_MB"] = max(
-                    metrics.get("peak_cpu_memory_MB", 0), train_metrics["cpu_memory_MB"]
-                )
             for key, value in train_metrics.items():
-                if key.startswith("gpu_"):
+                if key.startswith("gpu_") and key.endswith("_memory_MB"):
+                    metrics["peak_" + key] = max(metrics.get("peak_" + key, 0), value)
+                elif key.startswith("worker_") and key.endswith("_memory_MB"):
                     metrics["peak_" + key] = max(metrics.get("peak_" + key, 0), value)
 
             if self._validation_data_loader is not None:
@@ -129,9 +131,9 @@ class GradientDescentTrainer(training.GradientDescentTrainer):
                             self.model,
                             val_loss,
                             val_reg_loss,
-                            num_batches=num_batches,
                             batch_loss=None,
                             batch_reg_loss=None,
+                            num_batches=num_batches,
                             reset=True,
                             world_size=self._world_size,
                             cuda_device=self.cuda_device,
@@ -184,7 +186,7 @@ class GradientDescentTrainer(training.GradientDescentTrainer):
             if self._momentum_scheduler:
                 self._momentum_scheduler.step(this_epoch_val_metric)
 
-            if self._master:
+            if self._master and self._checkpointer is not None:
                 self._checkpointer.save_checkpoint(
                     epoch, self, is_best_so_far=self._metric_tracker.is_best_so_far()
                 )
@@ -209,11 +211,13 @@ class GradientDescentTrainer(training.GradientDescentTrainer):
 
             epochs_trained += 1
 
-        # make sure pending events are flushed to disk and files are closed properly
-        self._tensorboard.close()
+        for callback in self._end_callbacks:
+            callback(self, metrics=metrics, epoch=epoch, is_master=self._master)
 
         # Load the best model state before returning
-        best_model_state = self._checkpointer.best_model_state()
+        best_model_state = (
+            None if self._checkpointer is None else self._checkpointer.best_model_state()
+        )
         if best_model_state:
             self.model.load_state_dict(best_model_state)
 
@@ -230,22 +234,24 @@ class GradientDescentTrainer(training.GradientDescentTrainer):
             patience: int = None,
             validation_metric: str = "-loss",
             num_epochs: int = 20,
-            cuda_device: int = -1,
+            cuda_device: Optional[Union[int, torch.device]] = -1,
             grad_norm: float = None,
             grad_clipping: float = None,
             distributed: bool = None,
             world_size: int = 1,
             num_gradient_accumulation_steps: int = 1,
-            opt_level: Optional[str] = None,
             use_amp: bool = False,
-            optimizer: common.Lazy[optimizers.Optimizer] = None,
+            no_grad: List[str] = None,
+            optimizer: common.Lazy[optimizers.Optimizer] = common.Lazy(optimizers.Optimizer.default),
             learning_rate_scheduler: common.Lazy[learning_rate_schedulers.LearningRateScheduler] = None,
             momentum_scheduler: common.Lazy[momentum_schedulers.MomentumScheduler] = None,
             tensorboard_writer: common.Lazy[allen_tensorboard_writer.TensorboardWriter] = None,
             moving_average: common.Lazy[moving_average.MovingAverage] = None,
-            checkpointer: common.Lazy[training.Checkpointer] = None,
+            checkpointer: common.Lazy[training.Checkpointer] = common.Lazy(training.Checkpointer),
             batch_callbacks: List[training.BatchCallback] = None,
             epoch_callbacks: List[training.EpochCallback] = None,
+            end_callbacks: List[training.EpochCallback] = None,
+            trainer_callbacks: List[training.TrainerCallback] = None,
     ) -> "training.Trainer":
         if tensorboard_writer is None:
             tensorboard_writer = common.Lazy(combo_tensorboard_writer.NullTensorboardWriter)
@@ -265,6 +271,7 @@ class GradientDescentTrainer(training.GradientDescentTrainer):
             world_size=world_size,
             num_gradient_accumulation_steps=num_gradient_accumulation_steps,
             use_amp=use_amp,
+            no_grad=no_grad,
             optimizer=optimizer,
             learning_rate_scheduler=learning_rate_scheduler,
             momentum_scheduler=momentum_scheduler,
@@ -273,4 +280,6 @@ class GradientDescentTrainer(training.GradientDescentTrainer):
             checkpointer=checkpointer,
             batch_callbacks=batch_callbacks,
             epoch_callbacks=epoch_callbacks,
+            end_callbacks=end_callbacks,
+            trainer_callbacks=trainer_callbacks,
         )

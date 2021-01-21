@@ -62,11 +62,11 @@ class LemmatizerModel(base.Predictor):
         BATCH_SIZE, SENTENCE_LENGTH, MAX_WORD_LENGTH, CHAR_CLASSES = pred.size()
         pred = pred.reshape(-1, CHAR_CLASSES)
 
-        valid_positions = mask.sum()
-        mask = mask.reshape(-1)
         true = true.reshape(-1)
+        mask = true.gt(0)
         loss = utils.masked_cross_entropy(pred, true, mask)
         loss = loss.reshape(BATCH_SIZE, -1) * sample_weights.unsqueeze(-1)
+        valid_positions = mask.sum()
         return loss.sum() / valid_positions
 
     @classmethod

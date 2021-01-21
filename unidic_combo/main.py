@@ -1,6 +1,7 @@
 """Main entry point."""
 import logging
 import os
+import pathlib
 import tempfile
 from typing import Dict
 
@@ -18,7 +19,7 @@ from unidic_combo.utils import checks
 
 logger = logging.getLogger(__name__)
 _FEATURES = ["token", "char", "upostag", "xpostag", "lemma", "feats"]
-_TARGETS = ["deprel", "feats", "head", "lemma", "upostag", "xpostag", "semrel", "sent"]
+_TARGETS = ["deprel", "feats", "head", "lemma", "upostag", "xpostag", "semrel", "sent", "deps"]
 
 FLAGS = flags.FLAGS
 flags.DEFINE_enum(name="mode", default=None, enum_values=["train", "predict"],
@@ -31,10 +32,12 @@ flags.DEFINE_string(name="output_file", default="output.log",
                     help="Predictions result file.")
 
 # Training flags
-flags.DEFINE_list(name="training_data_path", default="./tests/fixtures/example.conllu",
+flags.DEFINE_list(name="training_data_path", default=[],
                   help="Training data path(s)")
+flags.DEFINE_alias(name="training_data", original_name="training_data_path")
 flags.DEFINE_list(name="validation_data_path", default="",
                   help="Validation data path(s)")
+flags.DEFINE_alias(name="validation_data", original_name="validation_data_path")
 flags.DEFINE_string(name="pretrained_tokens", default="",
                     help="Pretrained tokens embeddings path")
 flags.DEFINE_integer(name="embedding_dim", default=300,
@@ -60,7 +63,7 @@ flags.DEFINE_list(name="finetuning_training_data_path", default="",
                   help="Training data path(s)")
 flags.DEFINE_list(name="finetuning_validation_data_path", default="",
                   help="Validation data path(s)")
-flags.DEFINE_string(name="config_path", default="config.template.jsonnet",
+flags.DEFINE_string(name="config_path", default=str(pathlib.Path(__file__).parent / "config.template.jsonnet"),
                     help="Config file path.")
 
 # Test after training flags
@@ -82,8 +85,8 @@ flags.DEFINE_integer(name="batch_size", default=1,
                      help="Prediction batch size.")
 flags.DEFINE_boolean(name="silent", default=True,
                      help="Silent prediction to file (without printing to console).")
-flags.DEFINE_enum(name="predictor_name", default="semantic-multitask-predictor-spacy",
-                  enum_values=["semantic-multitask-predictor", "semantic-multitask-predictor-spacy"],
+flags.DEFINE_enum(name="predictor_name", default="unidic_combo-spacy",
+                  enum_values=["unidic_combo", "unidic_combo-spacy"],
                   help="Use predictor with whitespace or spacy tokenizer.")
 
 
@@ -134,7 +137,7 @@ def run(_):
             params = common.Params.from_file(FLAGS.config_path, ext_vars=_get_ext_vars())["dataset_reader"]
             params.pop("type")
             dataset_reader = dataset.UniversalDependenciesDatasetReader.from_params(params)
-            predictor = predict.SemanticMultitaskPredictor(
+            predictor = predict.COMBO(
                 model=model,
                 dataset_reader=dataset_reader
             )
@@ -149,8 +152,7 @@ def run(_):
         if FLAGS.input_file == "-":
             use_dataset_reader = False
             predictor.without_sentence_embedding = True
-        if use_dataset_reader:
-            predictor.line_to_conllu = True
+            predictor.line_to_conllu = False
         if FLAGS.silent:
             logging.getLogger("allennlp.common.params").disabled = True
         manager = allen_predict._PredictManager(

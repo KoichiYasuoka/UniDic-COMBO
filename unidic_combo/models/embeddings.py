@@ -107,18 +107,16 @@ class TransformersWordEmbedder(token_embedders.PretrainedTransformerMismatchedEm
 
     def __init__(self,
                  model_name: str,
-                 projection_dim: int,
+                 projection_dim: int = 0,
                  projection_activation: Optional[allen_nn.Activation] = lambda x: x,
                  projection_dropout_rate: Optional[float] = 0.0,
                  freeze_transformer: bool = True,
                  tokenizer_kwargs: Optional[Dict[str, Any]] = None,
                  transformer_kwargs: Optional[Dict[str, Any]] = None):
-        super().__init__(model_name, tokenizer_kwargs=tokenizer_kwargs, transformer_kwargs=transformer_kwargs)
-        self.freeze_transformer = freeze_transformer
-        if self.freeze_transformer:
-            self._matched_embedder.eval()
-            for param in self._matched_embedder.parameters():
-                param.requires_grad = False
+        super().__init__(model_name,
+                         train_parameters=not freeze_transformer,
+                         tokenizer_kwargs=tokenizer_kwargs,
+                         transformer_kwargs=transformer_kwargs)
         if projection_dim:
             self.projection_layer = base.Linear(in_features=super().get_output_dim(),
                                                 out_features=projection_dim,
@@ -147,20 +145,6 @@ class TransformersWordEmbedder(token_embedders.PretrainedTransformerMismatchedEm
     @overrides
     def get_output_dim(self):
         return self.output_dim
-
-    @overrides
-    def train(self, mode: bool):
-        if self.freeze_transformer:
-            self.projection_layer.train(mode)
-        else:
-            super().train(mode)
-
-    @overrides
-    def eval(self):
-        if self.freeze_transformer:
-            self.projection_layer.eval()
-        else:
-            super().eval()
 
 
 @token_embedders.TokenEmbedder.register("feats_embedding")
@@ -196,10 +180,10 @@ class FeatsTokenEmbedder(token_embedders.Embedding):
 
     def forward(self, tokens: torch.Tensor) -> torch.Tensor:
         # (batch_size, sentence_length, features_vocab_length)
-        mask = (tokens > 0).float()
+        mask = tokens.gt(0)
         # (batch_size, sentence_length, features_vocab_length, embedding_dim)
         x = super().forward(tokens)
         # (batch_size, sentence_length, embedding_dim)
         return x.sum(dim=-2) / (
-            (mask.sum(dim=-1) + util.tiny_value_of_dtype(mask.dtype)).unsqueeze(dim=-1)
+            (mask.sum(dim=-1) + util.tiny_value_of_dtype(torch.float)).unsqueeze(dim=-1)
         )

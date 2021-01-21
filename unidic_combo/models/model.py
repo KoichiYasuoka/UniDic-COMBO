@@ -12,7 +12,7 @@ from unidic_combo.utils import metrics
 
 
 @allen_models.Model.register("semantic_multitask")
-class SemanticMultitaskModel(allen_models.Model):
+class ComboModel(allen_models.Model):
     """Main COMBO model."""
 
     def __init__(self,
@@ -27,6 +27,7 @@ class SemanticMultitaskModel(allen_models.Model):
                  semantic_relation: Optional[base.Predictor] = None,
                  morphological_feat: Optional[base.Predictor] = None,
                  dependency_relation: Optional[base.Predictor] = None,
+                 enhanced_dependency_relation: Optional[base.Predictor] = None,
                  regularizer: allen_nn.RegularizerApplicator = None) -> None:
         super().__init__(vocab, regularizer)
         self.text_field_embedder = text_field_embedder
@@ -39,6 +40,7 @@ class SemanticMultitaskModel(allen_models.Model):
         self.semantic_relation = semantic_relation
         self.morphological_feat = morphological_feat
         self.dependency_relation = dependency_relation
+        self.enhanced_dependency_relation = enhanced_dependency_relation
         self._head_sentinel = torch.nn.Parameter(torch.randn([1, 1, self.seq_encoder.get_output_dim()]))
         self.scores = metrics.SemanticMetrics()
         self._partial_losses = None
@@ -53,11 +55,15 @@ class SemanticMultitaskModel(allen_models.Model):
                 feats: torch.Tensor = None,
                 head: torch.Tensor = None,
                 deprel: torch.Tensor = None,
-                semrel: torch.Tensor = None, ) -> Dict[str, torch.Tensor]:
+                semrel: torch.Tensor = None,
+                enhanced_heads: torch.Tensor = None,
+                enhanced_deprels: torch.Tensor = None) -> Dict[str, torch.Tensor]:
 
         # Prepare masks
-        char_mask: torch.BoolTensor = sentence["char"]["token_characters"] > 0
+        char_mask = sentence["char"]["token_characters"].gt(0)
         word_mask = util.get_text_field_mask(sentence)
+
+        device = word_mask.device
 
         # If enabled weight samples loss by log(sentence_length)
         sample_weights = word_mask.sum(-1).float().log() if self.use_sample_weight else None
@@ -69,42 +75,49 @@ class SemanticMultitaskModel(allen_models.Model):
 
         # Concatenate the head sentinel (ROOT) onto the sentence representation.
         head_sentinel = self._head_sentinel.expand(batch_size, 1, encoding_dim)
-        encoder_emb = torch.cat([head_sentinel, encoder_emb], 1)
-        word_mask = torch.cat([word_mask.new_ones((batch_size, 1)), word_mask], 1)
+        encoder_emb_with_root = torch.cat([head_sentinel, encoder_emb], 1)
+        word_mask_with_root = torch.cat([torch.ones((batch_size, 1), device=device), word_mask], 1)
 
         upos_output = self._optional(self.upos_tagger,
-                                     encoder_emb[:, 1:],
-                                     mask=word_mask[:, 1:],
+                                     encoder_emb,
+                                     mask=word_mask,
                                      labels=upostag,
                                      sample_weights=sample_weights)
         xpos_output = self._optional(self.xpos_tagger,
-                                     encoder_emb[:, 1:],
-                                     mask=word_mask[:, 1:],
+                                     encoder_emb,
+                                     mask=word_mask,
                                      labels=xpostag,
                                      sample_weights=sample_weights)
         semrel_output = self._optional(self.semantic_relation,
-                                       encoder_emb[:, 1:],
-                                       mask=word_mask[:, 1:],
+                                       encoder_emb,
+                                       mask=word_mask,
                                        labels=semrel,
                                        sample_weights=sample_weights)
         morpho_output = self._optional(self.morphological_feat,
-                                       encoder_emb[:, 1:],
-                                       mask=word_mask[:, 1:],
+                                       encoder_emb,
+                                       mask=word_mask,
                                        labels=feats,
                                        sample_weights=sample_weights)
         lemma_output = self._optional(self.lemmatizer,
-                                      (encoder_emb[:, 1:], sentence.get("char").get("token_characters")
-                                       if sentence.get("char") else None),
-                                      mask=word_mask[:, 1:],
+                                      (encoder_emb, sentence.get("char").get("token_characters")
+                                      if sentence.get("char") else None),
+                                      mask=word_mask,
                                       labels=lemma.get("char").get("token_characters") if lemma else None,
                                       sample_weights=sample_weights)
         parser_output = self._optional(self.dependency_relation,
-                                       encoder_emb,
+                                       encoder_emb_with_root,
                                        returns_tuple=True,
-                                       mask=word_mask,
+                                       mask=word_mask_with_root,
                                        labels=(deprel, head),
                                        sample_weights=sample_weights)
+        enhanced_parser_output = self._optional(self.enhanced_dependency_relation,
+                                                encoder_emb_with_root,
+                                                returns_tuple=True,
+                                                mask=word_mask_with_root,
+                                                labels=(enhanced_deprels, head, enhanced_heads),
+                                                sample_weights=sample_weights)
         relations_pred, head_pred = parser_output["prediction"]
+        enhanced_relations_pred, enhanced_head_pred = enhanced_parser_output["prediction"]
         output = {
             "upostag": upos_output["prediction"],
             "xpostag": xpos_output["prediction"],
@@ -113,8 +126,13 @@ class SemanticMultitaskModel(allen_models.Model):
             "lemma": lemma_output["prediction"],
             "head": head_pred,
             "deprel": relations_pred,
-            "sentence_embedding": torch.max(encoder_emb[:, 1:], dim=1)[0],
+            "enhanced_head": enhanced_head_pred,
+            "enhanced_deprel": enhanced_relations_pred,
+            "sentence_embedding": torch.max(encoder_emb, dim=1)[0],
         }
+
+        if "rel_probability" in enhanced_parser_output:
+            output["enhanced_deprel_prob"] = enhanced_parser_output["rel_probability"]
 
         if self._has_labels([upostag, xpostag, lemma, feats, head, deprel, semrel]):
 
@@ -134,9 +152,12 @@ class SemanticMultitaskModel(allen_models.Model):
                 "lemma": lemma.get("char").get("token_characters") if lemma else None,
                 "head": head,
                 "deprel": deprel,
+                "enhanced_head": enhanced_heads,
+                "enhanced_deprel": enhanced_deprels,
             }
-            self.scores(output, labels, word_mask[:, 1:])
+            self.scores(output, labels, word_mask)
             relations_loss, head_loss = parser_output["loss"]
+            enhanced_relations_loss, enhanced_head_loss = enhanced_parser_output["loss"]
             losses = {
                 "upostag_loss": upos_output["loss"],
                 "xpostag_loss": xpos_output["loss"],
@@ -145,6 +166,8 @@ class SemanticMultitaskModel(allen_models.Model):
                 "lemma_loss": lemma_output["loss"],
                 "head_loss": head_loss,
                 "deprel_loss": relations_loss,
+                "enhanced_head_loss": enhanced_head_loss,
+                "enhanced_deprel_loss": enhanced_relations_loss,
                 # Cycle loss is only for the metrics purposes.
                 "cycle_loss": parser_output.get("cycle_loss")
             }

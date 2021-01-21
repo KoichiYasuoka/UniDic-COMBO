@@ -1,9 +1,12 @@
+import copy
 import logging
-from typing import Union, List, Dict, Iterable, Optional, Any
+import pathlib
+from typing import Union, List, Dict, Iterable, Optional, Any, Tuple
 
 import conllu
+import torch
 from allennlp import data as allen_data
-from allennlp.common import checks
+from allennlp.common import checks, util
 from allennlp.data import fields as allen_fields, vocabulary
 from conllu import parser
 from dataclasses import dataclass
@@ -34,6 +37,9 @@ class UniversalDependenciesDatasetReader(allen_data.DatasetReader):
 
         if "token" not in features and "char" not in features:
             raise checks.ConfigurationError("There must be at least one ('char' or 'token') text-based feature!")
+
+        if "deps" in targets and not ("head" in targets and "deprel" in targets):
+            raise checks.ConfigurationError("Add 'head' and 'deprel' to targets when using 'deps'!")
 
         intersection = set(features).intersection(set(targets))
         if len(intersection) != 0:
@@ -74,8 +80,10 @@ class UniversalDependenciesDatasetReader(allen_data.DatasetReader):
         file_path = [file_path] if len(file_path.split(",")) == 0 else file_path.split(",")
 
         for conllu_file in file_path:
-            with open(conllu_file, "r") as file:
-                for annotation in conllu.parse_incr(file, fields=self.fields, field_parsers=self.field_parsers):
+            file = pathlib.Path(conllu_file)
+            assert conllu_file and file.exists(), f"File with path '{conllu_file}' does not exists!"
+            with file.open("r") as f:
+                for annotation in conllu.parse_incr(f, fields=self.fields, field_parsers=self.field_parsers):
                     yield self.text_to_instance(annotation)
 
     @overrides
@@ -104,13 +112,46 @@ class UniversalDependenciesDatasetReader(allen_data.DatasetReader):
                     elif target_name == "feats":
                         target_values = self._feat_values(tree_tokens)
                         fields_[target_name] = fields.SequenceMultiLabelField(target_values,
-                                                                              self._feats_to_index_multi_label,
+                                                                              self._feats_indexer,
+                                                                              self._feats_as_tensor_wrapper,
                                                                               text_field,
                                                                               label_namespace="feats_labels")
                     elif target_name == "head":
                         target_values = [0 if v == "_" else int(v) for v in target_values]
                         fields_[target_name] = allen_fields.SequenceLabelField(target_values, text_field,
                                                                                label_namespace=target_name + "_labels")
+                    elif target_name == "deps":
+                        # Graphs require adding ROOT (AdjacencyField uses sequence length from TextField).
+                        text_field_deps = allen_fields.TextField([_Token("ROOT")] + copy.deepcopy(tokens),
+                                                                 self._token_indexers)
+                        enhanced_heads: List[Tuple[int, int]] = []
+                        enhanced_deprels: List[str] = []
+                        for idx, t in enumerate(tree_tokens):
+                            t_deps = t["deps"]
+                            if t_deps and t_deps != "_":
+                                for rel, head in t_deps:
+                                    # EmoryNLP skips the first edge, if there are two edges between the same
+                                    # nodes. Thanks to that one is in a tree and another in a graph.
+                                    # This snippet follows that approach.
+                                    if enhanced_heads and enhanced_heads[-1] == (idx, head):
+                                        enhanced_heads.pop()
+                                        enhanced_deprels.pop()
+                                    enhanced_heads.append((idx, head))
+                                    enhanced_deprels.append(rel)
+                        fields_["enhanced_heads"] = allen_fields.AdjacencyField(
+                            indices=enhanced_heads,
+                            sequence_field=text_field_deps,
+                            label_namespace="enhanced_heads_labels",
+                            padding_value=0,
+                        )
+                        fields_["enhanced_deprels"] = allen_fields.AdjacencyField(
+                            indices=enhanced_heads,
+                            sequence_field=text_field_deps,
+                            labels=enhanced_deprels,
+                            # Label namespace matches regular tree parsing.
+                            label_namespace="deprel_labels",
+                            padding_value=0,
+                        )
                     else:
                         fields_[target_name] = allen_fields.SequenceLabelField(target_values, text_field,
                                                                                label_namespace=target_name + "_labels")
@@ -130,7 +171,9 @@ class UniversalDependenciesDatasetReader(allen_data.DatasetReader):
                 token["feats"] = field
 
         # metadata
-        fields_["metadata"] = allen_fields.MetadataField({"input": tree, "field_names": self.fields})
+        fields_["metadata"] = allen_fields.MetadataField({"input": tree,
+                                                          "field_names": self.fields,
+                                                          "tokens": tokens})
 
         return allen_data.Instance(fields_)
 
@@ -153,12 +196,26 @@ class UniversalDependenciesDatasetReader(allen_data.DatasetReader):
         return features
 
     @staticmethod
-    def _feats_to_index_multi_label(vocab: allen_data.Vocabulary):
+    def _feats_as_tensor_wrapper(field: fields.SequenceMultiLabelField):
+        def as_tensor(padding_lengths):
+            desired_num_tokens = padding_lengths["num_tokens"]
+            assert len(field._indexed_multi_labels) > 0
+            classes_count = len(field._indexed_multi_labels[0])
+            default_value = [0.0] * classes_count
+            padded_tags = util.pad_sequence_to_length(field._indexed_multi_labels, desired_num_tokens,
+                                                      lambda: default_value)
+            tensor = torch.LongTensor(padded_tags)
+            return tensor
+
+        return as_tensor
+
+    @staticmethod
+    def _feats_indexer(vocab: allen_data.Vocabulary):
         label_namespace = "feats_labels"
         vocab_size = vocab.get_vocab_size(label_namespace)
         slices = get_slices_if_not_provided(vocab)
 
-        def _m_from_n_ones_encoding(multi_label: List[str]) -> List[int]:
+        def _m_from_n_ones_encoding(multi_label: List[str], sentence_length: int) -> List[int]:
             one_hot_encoding = [0] * vocab_size
             for cat, cat_indices in slices.items():
                 if cat not in ["__PAD__", "_"]:

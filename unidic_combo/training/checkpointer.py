@@ -16,6 +16,7 @@ class FinishingTrainingCheckpointer(training.Checkpointer):
             epoch: Union[int, str],
             trainer: "allen_trainer.Trainer",
             is_best_so_far: bool = False,
+            save_model_only: bool = False,
     ) -> None:
         if trainer._learning_rate_scheduler.decreases <= 1 or epoch == trainer._num_epochs - 1:
             super().save_checkpoint(epoch, trainer, is_best_so_far)

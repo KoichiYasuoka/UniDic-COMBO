@@ -1,13 +1,13 @@
 import collections
+import dataclasses
+import json
 from dataclasses import dataclass, field
 from typing import Optional, List, Dict, Any, Union, Tuple
 
 import conllu
-from dataclasses_json import dataclass_json
 from overrides import overrides
 
 
-@dataclass_json
 @dataclass
 class Token:
     id: Optional[Union[int, Tuple]] = None
@@ -23,12 +23,21 @@ class Token:
     semrel: Optional[str] = None
 
 
-@dataclass_json
 @dataclass
 class Sentence:
     tokens: List[Token] = field(default_factory=list)
     sentence_embedding: List[float] = field(default_factory=list)
     metadata: Dict[str, Any] = field(default_factory=collections.OrderedDict)
+
+    def to_json(self):
+        return json.dumps({
+            "tokens": [dataclasses.asdict(t) for t in self.tokens],
+            "sentence_embedding": self.sentence_embedding,
+            "metadata": self.metadata,
+        })
+
+    def __len__(self):
+        return len(self.tokens)
 
 
 class _TokenList(conllu.TokenList):
@@ -41,7 +50,7 @@ class _TokenList(conllu.TokenList):
 def sentence2conllu(sentence: Sentence, keep_semrel: bool = True) -> conllu.TokenList:
     tokens = []
     for token in sentence.tokens:
-        token_dict = collections.OrderedDict(token.to_dict())
+        token_dict = collections.OrderedDict(dataclasses.asdict(token))
         # Remove semrel to have default conllu format.
         if not keep_semrel:
             del token_dict["semrel"]
@@ -50,6 +59,10 @@ def sentence2conllu(sentence: Sentence, keep_semrel: bool = True) -> conllu.Toke
     for t in tokens:
         if type(t["id"]) == list:
             t["id"] = tuple(t["id"])
+        if t["deps"]:
+            for dep in t["deps"]:
+                if len(dep) > 1 and type(dep[1]) == list:
+                    dep[1] = tuple(dep[1])
     return _TokenList(tokens=tokens,
                       metadata=sentence.metadata)
 
@@ -64,9 +77,18 @@ def tokens2conllu(tokens: List[str]) -> conllu.TokenList:
 
 
 def conllu2sentence(conllu_sentence: conllu.TokenList,
-                    sentence_embedding: List[float]) -> Sentence:
+                    sentence_embedding=None) -> Sentence:
+    if sentence_embedding is None:
+        sentence_embedding = []
+    tokens = []
+    for token in conllu_sentence.tokens:
+        tokens.append(
+            Token(
+                **token
+            )
+        )
     return Sentence(
-        tokens=[Token.from_dict(t) for t in conllu_sentence.tokens],
+        tokens=tokens,
         sentence_embedding=sentence_embedding,
         metadata=conllu_sentence.metadata
     )
