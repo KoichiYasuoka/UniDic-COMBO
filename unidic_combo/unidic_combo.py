@@ -29,7 +29,7 @@ class ComboAPI(object):
     for s in conllu.split("\n"):
       if s=="" or s.startswith("#"):
         if e!=[]:
-          u.extend(combo_parser([Sentence(tokens=e)]))
+          u.append(Sentence(tokens=e))
           e=[]
       else:
         t=s.split("\t")
@@ -41,6 +41,7 @@ class ComboAPI(object):
           e.append(Token(id=int(t[0]),token=t[2],lemma=t[1],upostag=t[3],xpostag=xpos,misc=t[9]))
         else:
           e.append(Token(id=int(t[0]),token=t[1],lemma=t[2],upostag=t[3],xpostag=xpos,misc=t[9]))
+    u=combo_parser(u)
     for s in u:
       for t in s.tokens:
         if self.lemmaform:
