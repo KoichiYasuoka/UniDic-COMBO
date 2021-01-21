@@ -5,7 +5,7 @@ URL="https://github.com/KoichiYasuoka/UniDic-COMBO"
 
 setuptools.setup(
   name="unidic_combo",
-  version="0.9.3",
+  version="0.9.4",
   description="UniDic2UD + COMBO-pytorch wrapper for spaCy",
   long_description=long_description,
   long_description_content_type="text/markdown",
@@ -29,7 +29,7 @@ setuptools.setup(
     "ipadic>=1.0.0"
   ],
   python_requires=">=3.6",
-  package_data={"unidic_combo":["download/*.txt"]},
+  package_data={"unidic_combo":["./config.*","download/*.txt"]},
   classifiers=[
     "License :: OSI Approved :: GNU General Public License (GPL)",
     "Programming Language :: Python :: 3",
