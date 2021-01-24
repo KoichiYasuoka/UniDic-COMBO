@@ -98,18 +98,18 @@ Results of [舞姬/雪國/荒野より-Benchmarks](https://colab.research.google
 |[舞姬](https://github.com/KoichiYasuoka/UniDic2UD/blob/master/benchmark/maihime-benchmark.tar.gz)|LAS|MLAS|BLEX|
 |---------------|-----|-----|-----|
 |UniDic="kindai"|83.02|74.07|81.48|
-|UniDic="qkana" |81.13|74.07|81.48|
-|UniDic="kinsei"|75.93|72.73|72.73|
+|UniDic="qkana" |79.25|70.37|77.78|
+|UniDic="kinsei"|75.93|71.43|71.43|
 
 |[雪國](https://github.com/KoichiYasuoka/UniDic2UD/blob/master/benchmark/yukiguni-benchmark.tar.gz)|LAS|MLAS|BLEX|
 |---------------|-----|-----|-----|
 |UniDic="qkana" |87.50|82.35|78.43|
-|UniDic="kinsei"|85.71|78.43|74.51|
 |UniDic="kindai"|83.19|78.43|74.51|
+|UniDic="kinsei"|78.57|76.92|69.23|
 
 |[荒野より](https://github.com/KoichiYasuoka/UniDic2UD/blob/master/benchmark/koyayori-benchmark.tar.gz)|LAS|MLAS|BLEX|
 |---------------|-----|-----|-----|
-|UniDic="qkana" |77.49|64.00|64.00|
-|UniDic="kindai"|78.53|61.33|61.33|
-|UniDic="kinsei"|69.79|60.53|57.89|
+|UniDic="kindai"|76.44|56.00|56.00|
+|UniDic="qkana" |74.35|56.00|56.00|
+|UniDic="kinsei"|72.92|53.33|53.33|
 
