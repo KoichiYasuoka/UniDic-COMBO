@@ -143,7 +143,12 @@ class COMBO(predictor.Predictor):
         tree_tokens = [t for t in tree if isinstance(t["id"], int)]
         for field_name in field_names:
             if field_name not in predictions:
-                continue
+                if field_name == "upos" and "upostag" in predictions:
+                    field_name = "upostag"
+                elif field_name == "xpos" and "xpostag" in predictions:
+                    field_name = "xpostag"
+                else:
+                    continue
             field_predictions = predictions[field_name]
             for idx, token in enumerate(tree_tokens):
                 if field_name in {"xpostag", "upostag", "semrel", "deprel"}:
