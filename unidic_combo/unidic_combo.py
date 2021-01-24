@@ -60,6 +60,13 @@ class ComboAPI(object):
           t.upostag="DET"
         elif d=="nummod":
           t.upostag="NUM"
+        if t.upostag=="AUX" and d not in ["aux","cop"]:
+          if t.xpostag.startswith("動詞"):
+            t.upostag="VERB"
+          elif t.xpostag.startswith("形"):
+            t.upostag="ADJ"
+          elif t.xpostag.startswith("名詞"):
+            t.upostag="NOUN"
         if t.head==0 or t.head==t.id:
           t.head=0
           t.deprel="root"
