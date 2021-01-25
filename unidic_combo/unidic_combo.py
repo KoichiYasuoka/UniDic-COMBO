@@ -155,5 +155,5 @@ def download(url,file,dir="."):
       f.write(q)
       fs+=len(q)
       i+=1
-  print("")
+  print("",flush=True)
 
