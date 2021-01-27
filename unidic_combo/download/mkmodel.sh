@@ -22,4 +22,5 @@ do if [ -s $M.tar.gz ]
         split -a 1 -b 83886080 --numeric-suffixes=1 $M.tar.gz $M.tar.gz.
    fi
 done
+ls -ltr *.tar.gz | awk '{printf("%s %d\n",$NF,$5)}' > filesize.txt
 exit 0
