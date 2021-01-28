@@ -5,7 +5,7 @@ URL="https://github.com/KoichiYasuoka/UniDic-COMBO"
 
 setuptools.setup(
   name="unidic_combo",
-  version="1.0.2",
+  version="1.0.3",
   description="UniDic2UD + COMBO-pytorch wrapper for spaCy",
   long_description=long_description,
   long_description_content_type="text/markdown",
@@ -18,7 +18,7 @@ setuptools.setup(
   install_requires=[
     "unidic2ud>=2.7.1",
     "spacy>=2.2.2",
-    "allennlp>=1.2.0",
+    "allennlp>=1.2.0<2",
     "torch>=1.6.0",
     "absl-py>=0.9.0",
     "conllu>=2.3.2",
