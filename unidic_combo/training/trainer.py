@@ -18,7 +18,10 @@ from allennlp.training import checkpointer, optimizers
 from allennlp.training import learning_rate_schedulers
 from allennlp.training import momentum_schedulers
 from allennlp.training import moving_average
-from allennlp.training import tensorboard_writer as allen_tensorboard_writer
+try:
+    from allennlp.training.tensorboard_writer import TensorboardWriter
+except:
+    from allennlp.training.tensorboard_writer import TensorBoardWriter as TensorboardWriter
 from allennlp.training import util as training_util
 from overrides import overrides
 
@@ -27,8 +30,8 @@ from unidic_combo.training import tensorboard_writer as combo_tensorboard_writer
 logger = logging.getLogger(__name__)
 
 
-@training.EpochCallback.register("transfer_patience")
-class TransferPatienceEpochCallback(training.EpochCallback):
+@training.TrainerCallback.register("transfer_patience")
+class TransferPatienceTrainerCallback(training.TrainerCallback):
 
     def __call__(self, trainer: "training.GradientDescentTrainer", metrics: Dict[str, Any], epoch: int,
                  is_master: bool) -> None:
@@ -50,11 +53,11 @@ class GradientDescentTrainer(training.GradientDescentTrainer):
                  grad_norm: Optional[float] = None, grad_clipping: Optional[float] = None,
                  learning_rate_scheduler: Optional[learning_rate_schedulers.LearningRateScheduler] = None,
                  momentum_scheduler: Optional[momentum_schedulers.MomentumScheduler] = None,
-                 tensorboard_writer: allen_tensorboard_writer.TensorboardWriter = None,
+                 tensorboard_writer: TensorboardWriter = None,
                  moving_average: Optional[moving_average.MovingAverage] = None,
-                 batch_callbacks: List[training.BatchCallback] = None,
-                 epoch_callbacks: List[training.EpochCallback] = None,
-                 end_callbacks: List[training.EpochCallback] = None,
+                 batch_callbacks: List[training.TrainerCallback] = None,
+                 epoch_callbacks: List[training.TrainerCallback] = None,
+                 end_callbacks: List[training.TrainerCallback] = None,
                  trainer_callbacks: List[training.TrainerCallback] = None,
                  distributed: bool = False, local_rank: int = 0,
                  world_size: int = 1, num_gradient_accumulation_steps: int = 1,
@@ -245,12 +248,12 @@ class GradientDescentTrainer(training.GradientDescentTrainer):
             optimizer: common.Lazy[optimizers.Optimizer] = common.Lazy(optimizers.Optimizer.default),
             learning_rate_scheduler: common.Lazy[learning_rate_schedulers.LearningRateScheduler] = None,
             momentum_scheduler: common.Lazy[momentum_schedulers.MomentumScheduler] = None,
-            tensorboard_writer: common.Lazy[allen_tensorboard_writer.TensorboardWriter] = None,
+            tensorboard_writer: common.Lazy[TensorboardWriter] = None,
             moving_average: common.Lazy[moving_average.MovingAverage] = None,
             checkpointer: common.Lazy[training.Checkpointer] = common.Lazy(training.Checkpointer),
-            batch_callbacks: List[training.BatchCallback] = None,
-            epoch_callbacks: List[training.EpochCallback] = None,
-            end_callbacks: List[training.EpochCallback] = None,
+            batch_callbacks: List[training.TrainerCallback] = None,
+            epoch_callbacks: List[training.TrainerCallback] = None,
+            end_callbacks: List[training.TrainerCallback] = None,
             trainer_callbacks: List[training.TrainerCallback] = None,
     ) -> "training.Trainer":
         if tensorboard_writer is None:

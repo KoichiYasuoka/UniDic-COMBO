@@ -3,7 +3,10 @@ from typing import Dict, Optional, List
 
 import torch
 from allennlp import models, common
-from allennlp.data import dataloader
+try:
+    from allennlp.data import dataloader
+except:
+    from allennlp.data.data_loaders import data_loader as dataloader
 from allennlp.training import optimizers
 
 logger = logging.getLogger(__name__)
