@@ -91,6 +91,16 @@ chmod 755 /tmp/clang
 env PATH="/tmp:$PATH" pip3 install jsonnet --user
 ```
 
+If you fail to install [fugashi](https://github.com/polm/fugashi), try to install [MeCab](https://github.com/taku910/mecab) before installing UniDic-COMBO:
+
+```sh
+cd /tmp
+git clone --depth=1 https://github.com/taku910/mecab
+cd mecab/mecab
+./configure --with-charset=UTF8
+make && sudo make install
+```
+
 ## Benchmarks
 
 Results of [舞姬/雪國/荒野より-Benchmarks](https://colab.research.google.com/github/KoichiYasuoka/UniDic-COMBO/blob/master/benchmark.ipynb)
