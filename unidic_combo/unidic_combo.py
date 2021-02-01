@@ -106,6 +106,7 @@ def load(UniDic=None,BERT=True,LemmaAsForm=None):
   nlp.tokenizer.model.model=m
   return nlp
 
+import sys
 def progress(block_count,block_size,total_size):
   t=time.time()
   p=100.0*(block_count*block_size+fs)/ft
@@ -129,7 +130,7 @@ def progress(block_count,block_size,total_size):
     u=time.strftime("%H:%M:%S   ",time.gmtime(t))
   else:
     u=time.strftime("%d+%H:%M:%S   ",time.gmtime(t))
-  print("\r ["+s+"] "+str(int(p))+"% "+u,end="")
+  print("\r ["+s+"] "+str(int(p))+"% "+u,end="",file=sys.stderr)
 
 def download(url,file,dir="."):
   import urllib.request
@@ -155,5 +156,5 @@ def download(url,file,dir="."):
       f.write(q)
       fs+=len(q)
       i+=1
-  print("",flush=True)
+  print("",flush=True,file=sys.stderr)
 
