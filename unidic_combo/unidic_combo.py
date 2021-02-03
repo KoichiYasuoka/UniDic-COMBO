@@ -38,8 +38,12 @@ class ComboAPI(object):
           if xpos.startswith("記号"):
             xpos="補助"+xpos
           elif xpos.startswith("名詞-"):
-            if xpos.startswith("名詞-代名詞"):
+            if xpos=="名詞-一般":
+              xpos="名詞-普通名詞-一般"
+            elif xpos.startswith("名詞-代名詞"):
               xpos="代名詞"
+            elif xpos=="名詞-サ変接続":
+              xpos="名詞-普通名詞-サ変可能"
             elif xpos.endswith("可能"):
               xpos="名詞-普通"+xpos
         if self.lemmaform:
