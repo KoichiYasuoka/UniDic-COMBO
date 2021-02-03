@@ -37,6 +37,11 @@ class ComboAPI(object):
         if self.ipadic:
           if xpos.startswith("記号"):
             xpos="補助"+xpos
+          elif xpos.startswith("名詞-"):
+            if xpos.startswith("名詞-代名詞"):
+              xpos="代名詞"
+            elif xpos.endswith("可能"):
+              xpos="名詞-普通"+xpos
         if self.lemmaform:
           e.append(Token(id=int(t[0]),token=t[2],lemma=t[1],upostag=t[3],xpostag=xpos,misc=t[9]))
         else:
