@@ -26,7 +26,8 @@ setuptools.setup(
     "requests>=2.23.0",
     "overrides>=3.1.0",
     "fugashi>=1.1.0",
-    "ipadic>=1.0.0"
+    "ipadic>=1.0.0",
+    "unidic-lite>=1.0.8"
   ],
   python_requires=">=3.6",
   package_data={"unidic_combo":["./config.*","download/*.txt"]},

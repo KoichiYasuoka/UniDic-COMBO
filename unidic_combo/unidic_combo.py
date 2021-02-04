@@ -90,7 +90,7 @@ def load(UniDic=None,BERT=True,LemmaAsForm=None):
   global combo_parser
   import unidic2ud.spacy
   if UniDic==None:
-    UniDic="ipadic"
+    UniDic="unidic-lite"
   nlp=unidic2ud.spacy.load(UniDic,None)
   m="combo-japanese.tar.gz" if BERT else "combo-japanese-small.tar.gz"
   if LemmaAsForm==None:

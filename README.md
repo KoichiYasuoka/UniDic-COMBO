@@ -58,7 +58,7 @@
 * `UniDic="wakan"`: Use [中世文語（説話・随筆）UniDic](https://unidic.ninjal.ac.jp/download_all#unidic_wakan).
 * `UniDic="wabun"`: Use [中古和文UniDic](https://unidic.ninjal.ac.jp/download_all#unidic_wabun).
 * `UniDic="manyo"`: Use [上代（万葉集）UniDic](https://unidic.ninjal.ac.jp/download_all#unidic_manyo).
-* `UniDic=None`: Use IPADic (default).
+* `UniDic=None`: Use [unidic-lite](https://github.com/polm/unidic-lite) (default).
 
 `BERT=True`/`BERT=False` option enables/disables to use [bert-base-japanese-whole-word-masking](https://huggingface.co/cl-tohoku/bert-base-japanese-whole-word-masking).
 
