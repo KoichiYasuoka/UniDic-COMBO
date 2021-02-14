@@ -123,3 +123,6 @@ Results of [舞姬/雪國/荒野より-Benchmarks](https://colab.research.google
 |UniDic="qkana" |77.49|59.46|59.46|
 |UniDic="kinsei"|76.04|59.46|59.46|
 
+## Reference
+
+* 安岡孝一: [TransformersのBERTは共通テスト『国語』を係り受け解析する夢を見るか](http://kanji.zinbun.kyoto-u.ac.jp/~yasuoka/publications/2021-03-05.pdf), 東洋学へのコンピュータ利用, 第33回研究セミナー (2021年3月5日), pp.3-34.
