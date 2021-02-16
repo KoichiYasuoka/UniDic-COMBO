@@ -1,0 +1,4 @@
+combo-japanese.tar.gz 457067490
+combo-japanese-rev.tar.gz 457096960
+combo-japanese-small.tar.gz 68408523
+combo-japanese-small-rev.tar.gz 68211254

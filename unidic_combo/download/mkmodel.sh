@@ -18,7 +18,7 @@ do if [ -s $M.tar.gz ]
         *) B='--pretrained_transformer_name cl-tohoku/bert-base-japanese-whole-word-masking' ;;
         esac
 # AllenNLP < 2 recommended for training
-        python3 -m unidic_combo.main --mode train --cuda_device 0 --num_epochs 100 $B --training_data_path $C --targets deprel,head,upostag --features token,char,xpostag,lemma
+        python3 -m unidic_combo.main --mode train --cuda_device 0 --num_epochs 100 --config_path config.unidic_combo.jsonnet $B --training_data_path $C --targets deprel,head,upostag --features token,char,xpostag,lemma
         cp `ls -1t /tmp/allennlp*/model.tar.gz | head -1` $M.tar.gz
         split -a 1 -b 83886080 --numeric-suffixes=1 $M.tar.gz $M.tar.gz.
    fi
