@@ -158,7 +158,7 @@ class UniversalDependenciesDatasetReader(allen_data.DatasetReader):
 
         # Restore feats fields to string representation
         # parser.serialize_field doesn't handle key without value
-        for token in tree.tokens:
+        for token in tree.tokens if hasattr(tree, "tokens") else tree[:]:
             if "feats" in token:
                 feats = token["feats"]
                 if feats:

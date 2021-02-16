@@ -81,7 +81,7 @@ def conllu2sentence(conllu_sentence: conllu.TokenList,
     if sentence_embedding is None:
         sentence_embedding = []
     tokens = []
-    for token in conllu_sentence.tokens:
+    for token in conllu_sentence.tokens if hasattr(conllu_sentence, "tokens") else conllu_sentence[:]:
         tokens.append(
             Token(
                 **token
