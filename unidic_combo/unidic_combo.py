@@ -104,11 +104,9 @@ def load(UniDic=None,BERT=True,LemmaAsForm=None):
     f=os.path.join(DOWNLOAD_DIR,m)
     try:
       s=os.path.getsize(f)
-      if filesize[m]!=s:
-        s=-1
     except:
       s=-1
-    if s<0:
+    if filesize[m]!=s:
       download(MODEL_URL,m,DOWNLOAD_DIR)
     combo_parser=unidic_combo.predict.COMBO.from_pretrained(f)
     nlp.tokenizer.model.udpipe=ComboRevAPI(UniDic) if LemmaAsForm else ComboAPI(UniDic)
