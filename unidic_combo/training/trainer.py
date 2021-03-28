@@ -19,9 +19,12 @@ from allennlp.training import learning_rate_schedulers
 from allennlp.training import momentum_schedulers
 from allennlp.training import moving_average
 try:
-    from allennlp.training.tensorboard_writer import TensorboardWriter
-except:
     from allennlp.training.callbacks import TensorBoardCallback as TensorboardWriter
+except:
+    try:
+        from allennlp.training.tensorboard_writer import TensorboardWriter
+    except:
+        from allennlp.training.tensorboard_writer import TensorBoardWriter as TensorboardWriter
 from allennlp.training import util as training_util
 from overrides import overrides
 
