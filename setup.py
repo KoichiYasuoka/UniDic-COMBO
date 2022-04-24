@@ -16,7 +16,7 @@ setuptools.setup(
   keywords="NLP Japanese spaCy",
   packages=setuptools.find_packages(),
   install_requires=[
-    "unidic2ud>=2.9.3",
+    "unidic2ud>=2.9.4",
     "spacy>=2.2.2",
     "allennlp>=1.2.0",
     "torch>=1.6.0",
