@@ -18,7 +18,7 @@ setuptools.setup(
   install_requires=[
     "unidic2ud>=3.0.6",
     "spacy>=2.2.2",
-    "allennlp@git+https://github.com/allenai/allennlp",
+    "allennlp>=1.2.0",
     "transformers<4.31",
     "torch>=1.6.0",
     "absl-py>=0.9.0",
