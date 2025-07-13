@@ -5,7 +5,7 @@ URL="https://github.com/KoichiYasuoka/UniDic-COMBO"
 
 setuptools.setup(
   name="unidic_combo",
-  version="1.5.1",
+  version="1.5.2",
   description="UniDic2UD + COMBO-pytorch wrapper for spaCy",
   long_description=long_description,
   long_description_content_type="text/markdown",
