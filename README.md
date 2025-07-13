@@ -66,6 +66,7 @@
 ## Installation for Linux
 
 ```sh
+pip3 install git+https://github.com/allenai/allennlp
 pip3 install unidic_combo
 ```
 
@@ -74,32 +75,6 @@ pip3 install unidic_combo
 Make sure to get `python37-devel` `python37-pip` `python37-cython` `python37-numpy` `python37-cffi` `gcc-g++` `mingw64-x86_64-gcc-g++` `gcc-fortran` `git` `curl` `make` `cmake` `libopenblas` `liblapack-devel` `libhdf5-devel` `libfreetype-devel` `libuv-devel` packages, and then:
 ```sh
 curl -L https://raw.githubusercontent.com/KoichiYasuoka/UniDic-COMBO/master/cygwin64.sh | sh
-```
-
-## Installation for macOS
-
-```sh
-g++ --version
-pip3 install unidic_combo --user
-python3 -m spacy download en_core_web_sm --user
-```
-
-If you fail to install [Jsonnet](https://github.com/google/jsonnet), try below before installing UniDic-COMBO:
-
-```sh
-( echo '#! /bin/sh' ; echo 'exec gcc `echo $* | sed "s/-arch [^ ]*//g"`' ) > /tmp/clang
-chmod 755 /tmp/clang
-env PATH="/tmp:$PATH" pip3 install jsonnet --user
-```
-
-If you fail to install [fugashi](https://github.com/polm/fugashi), try to install [MeCab](https://github.com/taku910/mecab) before installing UniDic-COMBO:
-
-```sh
-cd /tmp
-git clone --depth=1 https://github.com/taku910/mecab
-cd mecab/mecab
-./configure --with-charset=UTF8
-make && sudo make install
 ```
 
 ## Benchmarks
