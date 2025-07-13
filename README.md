@@ -67,7 +67,7 @@
 
 ```sh
 pip3 install allennlp@git+https://github.com/allenai/allennlp
-pip3 'transformers<4.31'
+pip3 install 'transformers<4.31'
 pip3 install unidic_combo
 ```
 
