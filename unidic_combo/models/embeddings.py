@@ -6,7 +6,7 @@ import torch.nn as nn
 from allennlp import nn as allen_nn, data, modules
 from allennlp.modules import token_embedders
 from allennlp.nn import util
-from overrides import overrides
+#from overrides import overrides
 
 from unidic_combo.models import base, dilated_cnn
 
@@ -39,7 +39,7 @@ class CharacterBasedWordEmbeddings(token_embedders.TokenEmbedder):
         x = self.dilated_cnn_encoder(x.transpose(2, 3))
         return torch.max(x, dim=-1)[0]
 
-    @overrides
+    #@overrides
     def get_output_dim(self) -> int:
         return self.output_dim
 
@@ -92,7 +92,7 @@ class ProjectedWordEmbedder(token_embedders.Embedding):
         self._projection = projection_layer
         self.output_dim = embedding_dim if projection_layer is None else projection_layer.out_features
 
-    @overrides
+    #@overrides
     def get_output_dim(self) -> int:
         return self.output_dim
 
@@ -127,7 +127,7 @@ class TransformersWordEmbedder(token_embedders.PretrainedTransformerMismatchedEm
             self.projection_layer = None
             self.output_dim = super().get_output_dim()
 
-    @overrides
+    #@overrides
     def forward(
             self,
             token_ids: torch.LongTensor,
@@ -142,7 +142,7 @@ class TransformersWordEmbedder(token_embedders.PretrainedTransformerMismatchedEm
             x = self.projection_layer(x)
         return x
 
-    @overrides
+    #@overrides
     def get_output_dim(self):
         return self.output_dim
 

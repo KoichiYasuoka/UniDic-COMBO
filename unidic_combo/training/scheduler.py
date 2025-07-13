@@ -1,6 +1,6 @@
 import torch.optim.lr_scheduler as lr_scheduler
 from allennlp.training.learning_rate_schedulers import learning_rate_scheduler
-from overrides import overrides
+#from overrides import overrides
 
 
 @learning_rate_scheduler.LearningRateScheduler.register("combo_scheduler")
@@ -18,7 +18,7 @@ class Scheduler(learning_rate_scheduler._PyTorchLearningRateSchedulerWrapper):
     def _lr_lambda(idx: int) -> float:
         return 1.0 / (1.0 + idx * 1e-4)
 
-    @overrides
+    #@overrides
     def step(self, metric: float = None) -> None:
         self.lr_scheduler.step()
 

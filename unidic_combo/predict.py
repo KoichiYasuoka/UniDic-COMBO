@@ -7,7 +7,7 @@ from allennlp import data as allen_data, common, models
 from allennlp.common import util
 from allennlp.data import tokenizers
 from allennlp.predictors import predictor
-from overrides import overrides
+#from overrides import overrides
 
 from unidic_combo import data
 from unidic_combo.data import sentence2conllu, tokens2conllu, conllu2sentence
@@ -77,7 +77,7 @@ class COMBO(predictor.Predictor):
         else:
             raise ValueError("Input must be either string or list of strings.")
 
-    @overrides
+    #@overrides
     def predict_batch_instance(self, instances: List[allen_data.Instance]) -> List[data.Sentence]:
         sentences = []
         predictions = super().predict_batch_instance(instances)
@@ -87,24 +87,24 @@ class COMBO(predictor.Predictor):
             sentences.append(sentence)
         return sentences
 
-    @overrides
+    #@overrides
     def predict_batch_json(self, inputs: List[common.JsonDict]) -> List[data.Sentence]:
         instances = self._batch_json_to_instances(inputs)
         sentences = self.predict_batch_instance(instances)
         return sentences
 
-    @overrides
+    #@overrides
     def predict_instance(self, instance: allen_data.Instance, serialize: bool = True) -> data.Sentence:
         predictions = super().predict_instance(instance)
         tree, sentence_embedding = self._predictions_as_tree(predictions, instance)
         return conllu2sentence(tree, sentence_embedding)
 
-    @overrides
+    #@overrides
     def predict_json(self, inputs: common.JsonDict) -> data.Sentence:
         instance = self._json_to_instance(inputs)
         return self.predict_instance(instance)
 
-    @overrides
+    #@overrides
     def _json_to_instance(self, json_dict: common.JsonDict) -> allen_data.Instance:
         sentence = json_dict["sentence"]
         if isinstance(sentence, str):
@@ -115,11 +115,11 @@ class COMBO(predictor.Predictor):
             raise ValueError("Input must be either string or list of strings.")
         return self.dataset_reader.text_to_instance(tokens2conllu(tokens))
 
-    @overrides
+    #@overrides
     def load_line(self, line: str) -> common.JsonDict:
         return self._to_input_json(line.replace("\n", "").strip())
 
-    @overrides
+    #@overrides
     def dump_line(self, outputs: data.Sentence) -> str:
         # Check whether serialized (str) tree or token's list
         # Serialized tree has already separators between lines

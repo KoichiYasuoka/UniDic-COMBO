@@ -3,7 +3,7 @@ from typing import Optional, List, Dict
 
 import torch
 from allennlp.training import metrics
-from overrides import overrides
+#from overrides import overrides
 
 
 class LemmaAccuracy(metrics.Metric):
@@ -13,7 +13,7 @@ class LemmaAccuracy(metrics.Metric):
         self._total_count = 0.0
         self.correct_indices = torch.ones([])
 
-    @overrides
+    #@overrides
     def __call__(self,
                  predictions: torch.Tensor,
                  gold_labels: torch.Tensor,
@@ -49,7 +49,7 @@ class LemmaAccuracy(metrics.Metric):
         self._correct_count += correct.sum()
         self._total_count += mask.sum()
 
-    @overrides
+    #@overrides
     def get_metric(self, reset: bool) -> float:
         if self._total_count > 0:
             accuracy = float(self._correct_count) / float(self._total_count)
@@ -59,7 +59,7 @@ class LemmaAccuracy(metrics.Metric):
             self.reset()
         return accuracy
 
-    @overrides
+    #@overrides
     def reset(self) -> None:
         self._correct_count = 0.0
         self._total_count = 0.0
@@ -75,7 +75,7 @@ class SequenceBoolAccuracy(metrics.Metric):
         self.prod_last_dim = prod_last_dim
         self.correct_indices = torch.ones([])
 
-    @overrides
+    #@overrides
     def __call__(self,
                  predictions: torch.Tensor,
                  gold_labels: torch.Tensor,
@@ -113,7 +113,7 @@ class SequenceBoolAccuracy(metrics.Metric):
         self._correct_count += correct.sum()
         self._total_count += mask.sum()
 
-    @overrides
+    #@overrides
     def get_metric(self, reset: bool) -> float:
         if self._total_count > 0:
             accuracy = float(self._correct_count) / float(self._total_count)
@@ -123,7 +123,7 @@ class SequenceBoolAccuracy(metrics.Metric):
             self.reset()
         return accuracy
 
-    @overrides
+    #@overrides
     def reset(self) -> None:
         self._correct_count = 0.0
         self._total_count = 0.0
@@ -243,7 +243,7 @@ class AttachmentScores(metrics.Metric):
             "LEM": labeled_exact_match,
         }
 
-    @overrides
+    #@overrides
     def reset(self):
         self._labeled_correct = 0.0
         self._unlabeled_correct = 0.0

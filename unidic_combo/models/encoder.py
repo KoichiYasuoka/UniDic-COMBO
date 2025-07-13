@@ -5,7 +5,7 @@ import torch
 import torch.nn.utils.rnn as rnn
 from allennlp import common, modules
 from allennlp.modules import input_variational_dropout, stacked_bidirectional_lstm, seq2seq_encoders
-from overrides import overrides
+#from overrides import overrides
 
 
 class StackedBiLSTM(stacked_bidirectional_lstm.StackedBidirectionalLstm, common.FromParams):
@@ -19,7 +19,7 @@ class StackedBiLSTM(stacked_bidirectional_lstm.StackedBidirectionalLstm, common.
                          layer_dropout_probability=layer_dropout_probability,
                          use_highway=use_highway)
 
-    @overrides
+    #@overrides
     def forward(self,
                 inputs: rnn.PackedSequence,
                 initial_state: Optional[Tuple[torch.Tensor, torch.Tensor]] = None
@@ -66,7 +66,7 @@ class ComboEncoder(seq2seq_encoders.PytorchSeq2SeqWrapper):
         super().__init__(stacked_bilstm, stateful=False)
         self.layer_dropout = input_variational_dropout.InputVariationalDropout(p=layer_dropout_probability)
 
-    @overrides
+    #@overrides
     def forward(self,
                 inputs: torch.Tensor,
                 mask: torch.BoolTensor,

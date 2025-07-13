@@ -10,7 +10,7 @@ from allennlp.common import checks, util
 from allennlp.data import fields as allen_fields, vocabulary
 from conllu import parser
 from dataclasses import dataclass
-from overrides import overrides
+#from overrides import overrides
 
 from unidic_combo.data import fields
 
@@ -75,7 +75,7 @@ class UniversalDependenciesDatasetReader(allen_data.DatasetReader):
             if indexer_name not in self._features:
                 del self._token_indexers[indexer_name]
 
-    @overrides
+    #@overrides
     def _read(self, file_path: str) -> Iterable[allen_data.Instance]:
         file_path = [file_path] if len(file_path.split(",")) == 0 else file_path.split(",")
 
@@ -86,7 +86,7 @@ class UniversalDependenciesDatasetReader(allen_data.DatasetReader):
                 for annotation in conllu.parse_incr(f, fields=self.fields, field_parsers=self.field_parsers):
                     yield self.text_to_instance(annotation)
 
-    @overrides
+    #@overrides
     def text_to_instance(self, tree: conllu.TokenList) -> allen_data.Instance:
         fields_: Dict[str, allen_data.Field] = {}
         tree_tokens = [t for t in tree if isinstance(t["id"], int)]

@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from typing import Optional, List, Dict, Any, Union, Tuple
 
 import conllu
-from overrides import overrides
+#from overrides import overrides
 
 
 @dataclass
@@ -42,7 +42,7 @@ class Sentence:
 
 class _TokenList(conllu.TokenList):
 
-    @overrides
+    #@overrides
     def __repr__(self):
         return 'TokenList<' + ', '.join(token['token'] for token in self) + '>'
 

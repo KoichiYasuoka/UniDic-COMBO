@@ -26,7 +26,7 @@ except:
     except:
         from allennlp.training.tensorboard_writer import TensorBoardWriter as TensorboardWriter
 from allennlp.training import util as training_util
-from overrides import overrides
+#from overrides import overrides
 
 from unidic_combo.training import tensorboard_writer as combo_tensorboard_writer
 
@@ -73,7 +73,7 @@ class GradientDescentTrainer(training.GradientDescentTrainer):
         # TODO extract param to constructor (+ constructor method?)
         self.validate_every_n = 5
 
-    @overrides
+    #@overrides
     def _try_train(self) -> Dict[str, Any]:
         try:
             epoch_counter = self._restore_checkpoint()

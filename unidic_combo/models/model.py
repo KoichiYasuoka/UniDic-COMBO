@@ -5,7 +5,7 @@ import torch
 from allennlp import data, modules, models as allen_models, nn as allen_nn
 from allennlp.modules import text_field_embedders
 from allennlp.nn import util
-from overrides import overrides
+#from overrides import overrides
 
 from unidic_combo.models import base
 from unidic_combo.utils import metrics
@@ -45,7 +45,7 @@ class ComboModel(allen_models.Model):
         self.scores = metrics.SemanticMetrics()
         self._partial_losses = None
 
-    @overrides
+    #@overrides
     def forward(self,
                 sentence: Dict[str, Dict[str, torch.Tensor]],
                 metadata: List[Dict[str, Any]],
@@ -206,7 +206,7 @@ class ComboModel(allen_models.Model):
                 del output[k]
         return output
 
-    @overrides
+    #@overrides
     def get_metrics(self, reset: bool = False) -> Dict[str, float]:
         metrics = self.scores.get_metric(reset)
         if self._partial_losses:
