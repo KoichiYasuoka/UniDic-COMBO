@@ -7,7 +7,7 @@ import torch
 from allennlp import data
 from allennlp.common import checks
 from allennlp.data import fields
-from overrides import overrides
+#from overrides import overrides
 
 logger = logging.getLogger(__name__)
 
@@ -91,14 +91,14 @@ class SequenceMultiLabelField(data.Field[torch.Tensor]):
     def __len__(self) -> int:
         return len(self.multi_labels)
 
-    @overrides
+    #@overrides
     def count_vocab_items(self, counter: Dict[str, Dict[str, int]]):
         if self._indexed_multi_labels is None:
             for multi_label in self.multi_labels:
                 for label in multi_label:
                     counter[self._label_namespace][label] += 1  # type: ignore
 
-    @overrides
+    #@overrides
     def index(self, vocab: data.Vocabulary):
         indexer = self.multi_label_indexer(vocab)
 
@@ -107,15 +107,15 @@ class SequenceMultiLabelField(data.Field[torch.Tensor]):
             indexed.append(indexer(multi_label, len(self.multi_labels)))
         self._indexed_multi_labels = indexed
 
-    @overrides
+    #@overrides
     def get_padding_lengths(self) -> Dict[str, int]:
         return {"num_tokens": self.sequence_field.sequence_length()}
 
-    @overrides
+    #@overrides
     def as_tensor(self, padding_lengths: Dict[str, int]) -> torch.Tensor:
         return self.as_tensor_wrapper(padding_lengths)
 
-    @overrides
+    #@overrides
     def empty_field(self) -> "SequenceMultiLabelField":
         empty_list: List[List[str]] = [[]]
         sequence_label_field = SequenceMultiLabelField(empty_list, lambda x: lambda y: y,

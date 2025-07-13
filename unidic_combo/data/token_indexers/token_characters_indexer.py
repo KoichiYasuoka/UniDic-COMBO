@@ -7,7 +7,7 @@ from allennlp import data
 from allennlp.common import util
 from allennlp.data import tokenizers
 from allennlp.data.token_indexers import token_characters_indexer
-from overrides import overrides
+#from overrides import overrides
 
 
 @data.TokenIndexer.register("characters_const_padding")
@@ -24,13 +24,13 @@ class TokenCharactersIndexer(token_characters_indexer.TokenCharactersIndexer):
         super().__init__(namespace, character_tokenizer, start_tokens, end_tokens, min_padding_length,
                          token_min_padding_length)
 
-    @overrides
+    #@overrides
     def get_padding_lengths(self, indexed_tokens: data.IndexedTokenList) -> Dict[str, int]:
         padding_lengths = {"token_characters": len(indexed_tokens["token_characters"]),
                            "num_token_characters": self._min_padding_length}
         return padding_lengths
 
-    @overrides
+    #@overrides
     def as_padded_tensor_dict(
             self, tokens: data.IndexedTokenList, padding_lengths: Dict[str, int]
     ) -> Dict[str, torch.Tensor]:

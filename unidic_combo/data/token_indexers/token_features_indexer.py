@@ -5,7 +5,7 @@ from typing import List, Dict
 import torch
 from allennlp import data
 from allennlp.common import util
-from overrides import overrides
+#from overrides import overrides
 
 
 @data.TokenIndexer.register("feats_indexer")
@@ -21,13 +21,13 @@ class TokenFeatsIndexer(data.TokenIndexer):
         self.namespace = namespace
         self._feature_name = feature_name
 
-    @overrides
+    #@overrides
     def count_vocab_items(self, token: data.Token, counter: Dict[str, Dict[str, int]]):
         feats = self._feat_values(token)
         for feat in feats:
             counter[self.namespace][feat] += 1
 
-    @overrides
+    #@overrides
     def tokens_to_indices(self, tokens: List[data.Token], vocabulary: data.Vocabulary) -> data.IndexedTokenList:
         indices: List[List[int]] = []
         vocab_size = vocabulary.get_vocab_size(self.namespace)
@@ -39,7 +39,7 @@ class TokenFeatsIndexer(data.TokenIndexer):
             indices.append(util.pad_sequence_to_length(token_indices, vocab_size))
         return {"tokens": indices}
 
-    @overrides
+    #@overrides
     def get_empty_token_list(self) -> data.IndexedTokenList:
         return {"tokens": [[]]}
 
@@ -59,7 +59,7 @@ class TokenFeatsIndexer(data.TokenIndexer):
                     features.append(feat)
         return features
 
-    @overrides
+    #@overrides
     def as_padded_tensor_dict(
             self, tokens: data.IndexedTokenList, padding_lengths: Dict[str, int]
     ) -> Dict[str, torch.Tensor]:
